@@ -1,0 +1,15 @@
+.hero{padding:48px 0}
+.hero-inner{display:flex;gap:40px;align-items:flex-start}
+.hero-copy{flex:1}
+.hero h1{font-size:2.4rem;margin:0 0 8px}
+.lead{color:var(--muted);margin-top:0}
+.cards{width:320px}
+.card{background:var(--glass);padding:18px;border-radius:12px;border:1px solid rgba(255,255,255,0.03)}
+.card h3{margin:0 0 6px}
+.card p{margin:0 0 12px;color:var(--muted)}
+.btn{display:inline-block;padding:8px 12px;background:var(--accent);color:#fff;border-radius:8px;text-decoration:none}
+
+@media (max-width:800px){
+  .hero-inner{flex-direction:column}
+  .cards{width:100%}
+}
