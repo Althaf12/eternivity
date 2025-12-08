@@ -13,3 +13,7 @@
   .hero-inner{flex-direction:column}
   .cards{width:100%}
 }
+
+.services{padding:32px 0}
+.services h2{margin:0 0 16px;font-size:1.25rem}
+

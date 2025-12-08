@@ -6,7 +6,9 @@ export default function Header() {
   return (
     <header className={styles['site-header']}>
       <div className={`container ${styles['header-inner']}`}>
-        <Link to="/" className={styles.brand}>Eternivity<span className="tm">TM</span></Link>
+        <Link to="/" className={styles.brand} aria-label="Eternivity home">
+          Eternivity<span className="tm">TM</span>
+        </Link>
         <nav>
           <Link to="/">Home</Link>
           <Link to="/about">About</Link>

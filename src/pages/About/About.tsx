@@ -10,8 +10,8 @@ export default function About() {
         Each tool is independent, easy to host, and focused on doing one thing well.
       </p>
       <p>
-        Our goal is to keep pages fast, accessible, and SEO-friendly. This landing site links to each service
-        while keeping the main site minimal and efficient.
+        Our goal is to provide reliable, efficient services while maintaining user privacy. We strive to
+        keep pages fast, accessible, and user-friendly. This landing site links to each service.
       </p>
     </section>
   )
