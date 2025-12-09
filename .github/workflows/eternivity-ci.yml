@@ -1,0 +1,32 @@
+name: Build & Deploy Eternivity on RP5 (Self-hosted)
+
+on:
+  push:
+    branches: ["main"]
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+
+    steps:
+      - name: Pull latest code from main branch
+        run: |
+          sudo -u eternivity git -C /opt/eternivity pull origin main
+
+      - name: Install dependencies (npm)
+        run: |
+          cd /opt/eternivity
+          sudo -u eternivity npm install
+
+      - name: Build frontend
+        run: |
+          cd /opt/eternivity
+          sudo -u eternivity npm run build
+
+      - name: Test nginx and reload
+        run: |
+          sudo nginx -t
+          sudo systemctl restart nginx
+
+      - name: Deployment success
+        run: echo "Eternivity deployed successfully!"
