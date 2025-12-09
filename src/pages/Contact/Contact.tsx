@@ -5,7 +5,7 @@ export default function Contact() {
   return (
     <section className={`page container ${styles.contact}`}>
       <h2>Contact Us</h2>
-      <p>If you have questions about Eternivity™, reach out at <a href="mailto:expensetracker.eternivity@gmail.com">expensetracker.eternivity@gmail.com</a>.</p>
+      <p>If you have questions about Eternivity™, reach out at <a href="mailto:contact.eternivity@gmail.com">contact.eternivity@gmail.com</a>.</p>
       <p>For support or service-specific inquiries, visit the relevant subdomain and use its contact method.</p>
     </section>
   )

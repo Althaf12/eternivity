@@ -7,7 +7,7 @@ export default function Home() {
       <section className={styles.hero}>
         <div className={`container ${styles['hero-inner']}`}>
           <div style={{flexBasis:320, display:'flex', alignItems:'center', justifyContent:'center'}}>
-            <img src="/resources/logo/Picture1.png" alt="Eternivity main" style={{maxWidth:280, borderRadius:12}} />
+            <img src="/resources/logo/Picture1-min.png" alt="Eternivity main" style={{maxWidth:280, borderRadius:12}} />
           </div>
           <div className={styles['hero-copy']}>
             <br />
