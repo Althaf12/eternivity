@@ -1,5 +1,6 @@
 import React from 'react'
 import styles from './Home.module.css'
+import logo from '/src/resources/logo/Picture1-min.webp'
 
 export default function Home() {
   return (
@@ -7,7 +8,7 @@ export default function Home() {
       <section className={styles.hero}>
         <div className={`container ${styles['hero-inner']}`}>
           <div style={{flexBasis:320, display:'flex', alignItems:'center', justifyContent:'center'}}>
-            <img src="/src/resources/logo/Picture1-min.webp" alt="Eternivity main" style={{maxWidth:280, borderRadius:12}} />
+            <img src={logo} alt="Eternivity main" style={{maxWidth:280, borderRadius:12}} />
           </div>
           <div className={styles['hero-copy']}>
             <br />
