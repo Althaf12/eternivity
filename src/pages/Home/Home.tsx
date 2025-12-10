@@ -1,6 +1,6 @@
 import React from 'react'
 import styles from './Home.module.css'
-import logo from '/src/resources/logo/Picture1-min.webp'
+import logo from '/logo/Picture1-min.webp'
 
 export default function Home() {
   return (
