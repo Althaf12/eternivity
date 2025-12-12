@@ -11,12 +11,9 @@ export default function Home() {
             <img src={logo} alt="Eternivity main" style={{maxWidth:280, borderRadius:12}} />
           </div>
           <div className={styles['hero-copy']}>
-            <br />
-            <br />
-            <br />
-            <br />
             <h1>Eternivity<span className="tm">TM</span></h1>
             <p className={styles.lead}>Small, focused web services hosted as subdomains — simple, fast, and modular.</p>
+            <p className={styles.lead}>More services coming soon.</p>
           </div>
         </div>
       </section>

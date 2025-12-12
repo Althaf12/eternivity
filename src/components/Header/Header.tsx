@@ -6,6 +6,9 @@ export default function Header() {
   return (
     <header className={styles['site-header']}>
       <div className={`container ${styles['header-inner']}`}>
+        <Link to="/" aria-label="Eternivity home">
+          <img src="/logo/Picture3-no bg.png" alt="Eternivity logo" className={styles.logo} />
+        </Link>
         <Link to="/" className={styles.brand} aria-label="Eternivity home">
           Eternivity<span className="tm">TM</span>
         </Link>
