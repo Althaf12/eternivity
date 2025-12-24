@@ -122,21 +122,25 @@ export const authService = {
   setAuthCookie(user: User, token: string): void {
     const cookieData = JSON.stringify({
       token,
+      userId: user.userId,
       username: user.username,
       email: user.email,
       services: user.services,
     });
-    
+
     // Set cookie with domain for subdomain access
     // Using .eternivity.com allows access from subdomains
     const isProduction = window.location.hostname.includes('eternivity.com');
     const domain = isProduction ? '.eternivity.com' : '';
-    const secure = isProduction ? 'Secure;' : '';
-    
+    // For production (real domains) mark Secure and use SameSite=None to allow cross-site contexts where necessary.
+    // For local development keep SameSite=Lax and omit Secure so cookies work over HTTP.
+    const cookieSameSite = isProduction ? 'SameSite=None;' : 'SameSite=Lax;';
+    const cookieSecure = isProduction ? 'Secure;' : '';
+
     // Encode cookie data as base64 to handle special characters
     const encodedData = btoa(cookieData);
-    
-    document.cookie = `eternivity_auth=${encodedData}; path=/; ${domain ? `domain=${domain};` : ''} ${secure} SameSite=Lax; max-age=86400`;
+
+    document.cookie = `eternivity_auth=${encodedData}; path=/; ${domain ? `domain=${domain};` : ''} ${cookieSecure} ${cookieSameSite} max-age=86400`;
   },
 
   // Clear auth cookie

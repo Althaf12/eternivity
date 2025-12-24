@@ -2,6 +2,7 @@ import React from 'react'
 import styles from './Home.module.css'
 import logo from '/logo/Picture1-min.webp'
 import { useAuth } from '../../context/AuthContext'
+import { authService } from '../../services/authService'
 import { config } from '../../config'
 
 export default function Home() {
@@ -11,8 +12,42 @@ export default function Home() {
     if (!isAuthenticated) {
       e.preventDefault();
       openAuthModal('login');
+      return;
     }
-    // If authenticated, the link will work normally with cookie already set
+
+    // Ensure cookie is set with latest user info before opening the service
+    e.preventDefault();
+    try {
+      const token = authService.getToken();
+      if (token && user) {
+        authService.setAuthCookie(user, token);
+      }
+    } catch (err) {
+      // ignore cookie set errors, still try to open service
+      console.error('Failed to set auth cookie before opening service', err);
+    }
+
+    // Print cookie details to console (raw and decoded) so developer can verify
+    try {
+      const raw = document.cookie;
+      const match = raw.split('; ').find((c) => c.startsWith('eternivity_auth='));
+      console.info('Eternivity auth cookie (raw):', match ?? '(not found)');
+      if (match) {
+        const value = match.split('=')[1] ?? '';
+        try {
+          const decoded = atob(value);
+          const parsed = JSON.parse(decoded);
+          console.info('Eternivity auth cookie (decoded):', parsed);
+        } catch (err) {
+          console.warn('Failed to decode/parse eternivity_auth cookie', err);
+        }
+      }
+    } catch (err) {
+      console.error('Error reading cookies', err);
+    }
+
+    // Open in new tab after cookie is set
+    window.open(serviceUrl, '_blank', 'noopener');
   };
 
   return (
