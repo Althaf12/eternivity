@@ -9,11 +9,8 @@ export default function Home() {
   const { isAuthenticated, openAuthModal, user } = useAuth();
 
   const handleServiceClick = (e: React.MouseEvent<HTMLAnchorElement>, serviceUrl: string) => {
-    if (!isAuthenticated) {
-      e.preventDefault();
-      openAuthModal('login');
-      return;
-    }
+    // Allow opening the service regardless of authentication state.
+    // If a token/user exists we'll still attempt to set the auth cookie.
 
     // Ensure cookie is set with latest user info before opening the service
     e.preventDefault();
