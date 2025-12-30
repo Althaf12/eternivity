@@ -9,7 +9,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   login: (username: string, password: string) => Promise<void>;
   register: (username: string, email: string, password: string) => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
   showAuthModal: boolean;
   authModalMode: 'login' | 'register';
@@ -29,6 +29,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [authModalMode, setAuthModalMode] = useState<'login' | 'register'>('login');
   const [toasts, setToasts] = useState<ToastData[]>([]);
   const [showConfetti, setShowConfetti] = useState(false);
+  const [hasShownWelcome, setHasShownWelcome] = useState(false);
 
   const addToast = useCallback((toast: Omit<ToastData, 'id'>) => {
     const id = Date.now().toString();
@@ -40,38 +41,55 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const refreshUser = useCallback(async () => {
-    if (!authService.isAuthenticated()) {
-      setUser(null);
-      setIsLoading(false);
-      return;
-    }
-
     try {
       const userData = await authService.getCurrentUser();
       setUser(userData);
-      // Set cookie for subdomain access
-      const token = authService.getToken();
-      if (token) {
-        authService.setAuthCookie(userData, token);
+      
+      // Show welcome message if user just logged in (detected via redirect)
+      // Check if we came from a redirect (URL contains auth-related params or referrer is auth domain)
+      const urlParams = new URLSearchParams(window.location.search);
+      const isFromAuth = urlParams.has('auth_success') || 
+                         document.referrer.includes('auth.eternivity.com');
+      
+      if (isFromAuth && !hasShownWelcome) {
+        setHasShownWelcome(true);
+        setShowConfetti(true);
+        addToast({
+          type: 'success',
+          title: `Welcome back, ${userData.username}!`,
+          message: 'You have successfully logged in',
+        });
+        setTimeout(() => setShowConfetti(false), 3000);
+        
+        // Clean up URL params
+        if (urlParams.has('auth_success')) {
+          urlParams.delete('auth_success');
+          const newUrl = urlParams.toString() 
+            ? `${window.location.pathname}?${urlParams.toString()}`
+            : window.location.pathname;
+          window.history.replaceState({}, '', newUrl);
+        }
       }
     } catch (error) {
-      console.error('Failed to refresh user:', error);
+      // User is not authenticated - this is expected on first load
+      // Don't redirect automatically, let the UI handle it
       setUser(null);
-      authService.removeToken();
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [addToast, hasShownWelcome]);
 
   useEffect(() => {
     refreshUser();
   }, [refreshUser]);
 
+  /**
+   * Login with username and password
+   */
   const login = async (username: string, password: string) => {
-    const response = await authService.login({ username, password });
+    await authService.login(username, password);
     const userData = await authService.getCurrentUser();
     setUser(userData);
-    authService.setAuthCookie(userData, response.token);
     setShowAuthModal(false);
     
     // Show success animation
@@ -84,11 +102,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setTimeout(() => setShowConfetti(false), 3000);
   };
 
+  /**
+   * Register new user
+   */
   const register = async (username: string, email: string, password: string) => {
-    const response = await authService.register({ username, email, password });
+    await authService.register(username, email, password);
     const userData = await authService.getCurrentUser();
     setUser(userData);
-    authService.setAuthCookie(userData, response.token);
     setShowAuthModal(false);
     
     // Show success animation
@@ -101,9 +121,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setTimeout(() => setShowConfetti(false), 3000);
   };
 
-  const logout = () => {
+  /**
+   * Logout via SSO - clears cookies
+   */
+  const logout = async () => {
     const username = user?.username;
-    authService.logout();
+    
+    await authService.logout();
     setUser(null);
     
     // Show logout notification

@@ -2,48 +2,17 @@ import React from 'react'
 import styles from './Home.module.css'
 import logo from '/logo/Picture1-min.webp'
 import { useAuth } from '../../context/AuthContext'
-import { authService } from '../../services/authService'
 import { config } from '../../config'
 
 export default function Home() {
   const { isAuthenticated, openAuthModal, user } = useAuth();
 
   const handleServiceClick = (e: React.MouseEvent<HTMLAnchorElement>, serviceUrl: string) => {
-    // Allow opening the service regardless of authentication state.
-    // If a token/user exists we'll still attempt to set the auth cookie.
-
-    // Ensure cookie is set with latest user info before opening the service
+    // With centralized SSO, authentication is handled via HttpOnly cookies
+    // set by auth.eternivity.com. No manual token/cookie handling needed.
+    // Simply open the service - the browser will automatically include
+    // the HttpOnly auth cookies for *.eternivity.com domains.
     e.preventDefault();
-    try {
-      const token = authService.getToken();
-      if (token && user) {
-        authService.setAuthCookie(user, token);
-      }
-    } catch (err) {
-      // ignore cookie set errors, still try to open service
-      console.error('Failed to set auth cookie before opening service', err);
-    }
-
-    // Print cookie details to console (raw and decoded) so developer can verify
-    try {
-      const raw = document.cookie;
-      const match = raw.split('; ').find((c) => c.startsWith('eternivity_auth='));
-      console.info('Eternivity auth cookie (raw):', match ?? '(not found)');
-      if (match) {
-        const value = match.split('=')[1] ?? '';
-        try {
-          const decoded = atob(value);
-          const parsed = JSON.parse(decoded);
-          console.info('Eternivity auth cookie (decoded):', parsed);
-        } catch (err) {
-          console.warn('Failed to decode/parse eternivity_auth cookie', err);
-        }
-      }
-    } catch (err) {
-      console.error('Error reading cookies', err);
-    }
-
-    // Open in new tab after cookie is set
     window.open(serviceUrl, '_blank', 'noopener');
   };
 

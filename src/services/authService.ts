@@ -1,57 +1,30 @@
-import { AuthResponse, LoginRequest, RegisterRequest, User } from '../types/auth';
+import { User } from '../types/auth';
 import { config } from '../config';
 
-const TOKEN_KEY = 'eternivity_auth_token';
+// Track if a token refresh is in progress to avoid multiple simultaneous refresh attempts
+let isRefreshing = false;
+let refreshPromise: Promise<boolean> | null = null;
 
+/**
+ * Centralized SSO Auth Service
+ * 
+ * This service relies on HttpOnly cookies set by auth.eternivity.com.
+ * No JWTs are stored or read manually in the browser.
+ * All authentication state is managed via cookies sent automatically with requests.
+ */
 export const authService = {
-  // Store token in localStorage
-  setToken(token: string): void {
-    localStorage.setItem(TOKEN_KEY, token);
-  },
-
-  // Get token from localStorage
-  getToken(): string | null {
-    return localStorage.getItem(TOKEN_KEY);
-  },
-
-  // Remove token from localStorage
-  removeToken(): void {
-    localStorage.removeItem(TOKEN_KEY);
-  },
-
-  // Check if user is authenticated
-  isAuthenticated(): boolean {
-    return !!this.getToken();
-  },
-
-  // Register new user
-  async register(data: RegisterRequest): Promise<AuthResponse> {
-    const response = await fetch(config.api.auth.register, {
+  /**
+   * Login with username and password
+   * Posts credentials to centralized SSO
+   */
+  async login(username: string, password: string): Promise<void> {
+    const response = await fetch(`${config.api.auth.baseUrl}/api/auth/login`, {
       method: 'POST',
+      credentials: 'include', // REQUIRED for cookies
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(data),
-    });
-
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({ message: 'Registration failed' }));
-      throw new Error(error.message || 'Registration failed');
-    }
-
-    const result: AuthResponse = await response.json();
-    this.setToken(result.token);
-    return result;
-  },
-
-  // Login user
-  async login(data: LoginRequest): Promise<AuthResponse> {
-    const response = await fetch(config.api.auth.login, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(data),
+      body: JSON.stringify({ username, password }),
     });
 
     if (!response.ok) {
@@ -59,30 +32,55 @@ export const authService = {
       throw new Error(error.message || 'Login failed');
     }
 
-    const result: AuthResponse = await response.json();
-    this.setToken(result.token);
-    return result;
+    // SSO sets HttpOnly cookies - no need to handle tokens manually
   },
 
-  // Get current user info
-  async getCurrentUser(): Promise<User> {
-    const token = this.getToken();
-    if (!token) {
-      throw new Error('No authentication token');
+  /**
+   * Register new user
+   * Posts registration data to centralized SSO
+   */
+  async register(username: string, email: string, password: string): Promise<void> {
+    const response = await fetch(`${config.api.auth.baseUrl}/api/auth/register`, {
+      method: 'POST',
+      credentials: 'include', // REQUIRED for cookies
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ username, email, password }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ message: 'Registration failed' }));
+      throw new Error(error.message || 'Registration failed');
     }
 
+    // SSO sets HttpOnly cookies - no need to handle tokens manually
+  },
+
+  /**
+   * Redirect to SSO password reset page
+   */
+  redirectToPasswordReset(): void {
+    const redirectUri = window.location.href;
+    window.location.href = `${config.api.auth.baseUrl}/reset-password?redirect_uri=${encodeURIComponent(redirectUri)}`;
+  },
+
+  /**
+   * Get current user info from SSO
+   * Relies on HttpOnly cookies for authentication
+   */
+  async getCurrentUser(): Promise<User> {
     const response = await fetch(config.api.auth.me, {
       method: 'GET',
+      credentials: 'include', // Important: include cookies for cross-origin requests
       headers: {
-        'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
     });
 
     if (!response.ok) {
       if (response.status === 401) {
-        this.removeToken();
-        throw new Error('Session expired');
+        throw new Error('Not authenticated');
       }
       throw new Error('Failed to get user info');
     }
@@ -90,64 +88,101 @@ export const authService = {
     return response.json();
   },
 
-  // Reset password
-  async resetPassword(oldPassword: string, newPassword: string): Promise<void> {
-    const token = this.getToken();
-    if (!token) {
-      throw new Error('No authentication token');
+  /**
+   * Attempt to refresh the authentication token
+   * Returns true if refresh was successful, false otherwise
+   */
+  async refreshToken(): Promise<boolean> {
+    // If already refreshing, return the existing promise
+    if (isRefreshing && refreshPromise) {
+      return refreshPromise;
     }
 
-    const response = await fetch(config.api.auth.passwordReset, {
-      method: 'POST',
+    isRefreshing = true;
+    refreshPromise = (async () => {
+      try {
+        const response = await fetch(config.api.auth.refresh, {
+          method: 'POST',
+          credentials: 'include', // Include cookies for refresh token
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+
+        return response.ok;
+      } catch (error) {
+        console.error('Token refresh failed:', error);
+        return false;
+      } finally {
+        isRefreshing = false;
+        refreshPromise = null;
+      }
+    })();
+
+    return refreshPromise;
+  },
+
+  /**
+   * Logout user via SSO
+   * Calls the centralized logout endpoint which clears cookies
+   */
+  async logout(): Promise<void> {
+    try {
+      await fetch(config.api.auth.logout, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+    } catch (error) {
+      console.error('Logout request failed:', error);
+    }
+    // SSO server handles clearing HttpOnly cookies
+    // The calling code (AuthContext) can handle any UI redirects
+  },
+
+  /**
+   * Check authentication status by attempting to get current user
+   * Returns user if authenticated, null otherwise
+   */
+  async checkAuth(): Promise<User | null> {
+    try {
+      return await this.getCurrentUser();
+    } catch (error) {
+      return null;
+    }
+  },
+
+  /**
+   * Create a fetch wrapper with automatic 401 handling
+   * Attempts to refresh token once on 401, then retries the request
+   */
+  async fetchWithAuth(url: string, options: RequestInit = {}): Promise<Response> {
+    const fetchOptions: RequestInit = {
+      ...options,
+      credentials: 'include', // Always include cookies
       headers: {
-        'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',
+        ...options.headers,
       },
-      body: JSON.stringify({ oldPassword, newPassword }),
-    });
+    };
 
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({ message: 'Password reset failed' }));
-      throw new Error(error.message || 'Password reset failed');
+    let response = await fetch(url, fetchOptions);
+
+    // If 401, attempt to refresh token and retry once
+    if (response.status === 401) {
+      const refreshed = await this.refreshToken();
+      
+      if (refreshed) {
+        // Retry the original request
+        response = await fetch(url, fetchOptions);
+      } else {
+        // Refresh failed - throw error and let caller handle it
+        throw new Error('Session expired. Please log in again.');
+      }
     }
-  },
 
-  // Logout user
-  logout(): void {
-    this.removeToken();
-    this.clearAuthCookie();
-  },
-
-  // Set cookie for subdomain access
-  setAuthCookie(user: User, token: string): void {
-    const cookieData = JSON.stringify({
-      token,
-      userId: user.userId,
-      username: user.username,
-      email: user.email,
-      services: user.services,
-    });
-
-    // Set cookie with domain for subdomain access
-    // Using .eternivity.com allows access from subdomains
-    const isProduction = window.location.hostname.includes('eternivity.com');
-    const domain = isProduction ? '.eternivity.com' : '';
-    // For production (real domains) mark Secure and use SameSite=None to allow cross-site contexts where necessary.
-    // For local development keep SameSite=Lax and omit Secure so cookies work over HTTP.
-    const cookieSameSite = isProduction ? 'SameSite=None;' : 'SameSite=Lax;';
-    const cookieSecure = isProduction ? 'Secure;' : '';
-
-    // Encode cookie data as base64 to handle special characters
-    const encodedData = btoa(cookieData);
-
-    document.cookie = `eternivity_auth=${encodedData}; path=/; ${domain ? `domain=${domain};` : ''} ${cookieSecure} ${cookieSameSite} max-age=86400`;
-  },
-
-  // Clear auth cookie
-  clearAuthCookie(): void {
-    const isProduction = window.location.hostname.includes('eternivity.com');
-    const domain = isProduction ? '.eternivity.com' : '';
-    
-    document.cookie = `eternivity_auth=; path=/; ${domain ? `domain=${domain};` : ''} expires=Thu, 01 Jan 1970 00:00:00 GMT`;
+    return response;
   },
 };

@@ -5,6 +5,9 @@ export interface User {
   services: Record<string, unknown>;
 }
 
+// Legacy types kept for reference - not used with centralized SSO
+// Authentication is now handled entirely by auth.eternivity.com via HttpOnly cookies
+
 export interface AuthResponse {
   token: string;
   type: string;
