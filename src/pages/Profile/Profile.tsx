@@ -89,20 +89,46 @@ export default function Profile() {
 
           {subscriptions.length > 0 ? (
             <div className={styles['subscriptions-list']}>
-              {subscriptions.map(([name, details]) => (
-                <div key={name} className={styles['subscription-item']}>
-                  <div className={styles['subscription-info']}>
-                    <div className={styles['subscription-icon']}>📦</div>
-                    <div className={styles['subscription-details']}>
-                      <h5>{name}</h5>
-                      <span>{typeof details === 'object' ? JSON.stringify(details) : String(details)}</span>
+              {subscriptions.map(([name, details]) => {
+                // normalize details to an object
+                const detailObj = typeof details === 'object' && details !== null
+                  ? details
+                  : (() => {
+                      try {
+                        return JSON.parse(String(details));
+                      } catch {
+                        return { raw: String(details) };
+                      }
+                    })();
+
+                const plan = (detailObj && (detailObj.plan || detailObj.tier || detailObj.planName)) || 'free';
+                const status = (detailObj && (detailObj.status || detailObj.state || detailObj.stateName)) || (detailObj && detailObj.raw ? 'Active' : 'Unknown');
+                const isActive = String(status).toLowerCase() === 'active';
+
+                return (
+                  <div key={name} className={styles['subscription-item']}>
+                    <div className={styles['subscription-info']}>
+                      <div className={styles['subscription-icon']}>📦</div>
+                      <div className={styles['subscription-details']}>
+                        <h5>{name}</h5>
+                        <div className={styles['subscription-meta']}>
+                          <span className={styles['subscription-plan']}>Plan: {String(plan)}</span>
+                          {detailObj && detailObj.raw && (
+                            <small className={styles['subscription-raw']}>{String(detailObj.raw)}</small>
+                          )}
+                        </div>
+                      </div>
                     </div>
+
+                    <span
+                      className={`${styles['subscription-status']} ${isActive ? styles['status-active'] : styles['status-inactive']}`}
+                      aria-label={`Subscription status: ${status}`}
+                    >
+                      {String(status)}
+                    </span>
                   </div>
-                  <span className={`${styles['subscription-status']} ${styles['status-active']}`}>
-                    Active
-                  </span>
-                </div>
-              ))}
+                );
+              })}
             </div>
           ) : (
             <div className={styles['no-subscriptions']}>
