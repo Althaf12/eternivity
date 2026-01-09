@@ -1,15 +1,18 @@
 import React, { useState, useEffect } from 'react';
+import { GoogleLogin, CredentialResponse } from '@react-oauth/google';
 import { useAuth } from '../../context/AuthContext';
+import { config } from '../../config';
 import styles from './AuthModal.module.css';
 
 export default function AuthModal() {
-  const { showAuthModal, authModalMode, closeAuthModal, login, register, openAuthModal } = useAuth();
+  const { showAuthModal, authModalMode, closeAuthModal, login, register, googleLogin, openAuthModal } = useAuth();
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
   // Reset form when modal opens/closes or mode changes
   useEffect(() => {
@@ -84,6 +87,29 @@ export default function AuthModal() {
   };
 
   const passwordStrength = getPasswordStrength(password);
+
+  // Google Sign-In handlers
+  const handleGoogleSuccess = async (credentialResponse: CredentialResponse) => {
+    if (!credentialResponse.credential) {
+      setError('Google Sign-In failed: No credential received');
+      return;
+    }
+
+    setError('');
+    setIsGoogleLoading(true);
+
+    try {
+      await googleLogin(credentialResponse.credential);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Google Sign-In failed');
+    } finally {
+      setIsGoogleLoading(false);
+    }
+  };
+
+  const handleGoogleError = () => {
+    setError('Google Sign-In was cancelled or failed. Please try again.');
+  };
 
   return (
     <div className={styles['modal-overlay']} onClick={closeAuthModal}>
@@ -178,7 +204,7 @@ export default function AuthModal() {
             </div>
           )}
 
-          <button type="submit" className={styles['submit-btn']} disabled={isLoading}>
+          <button type="submit" className={styles['submit-btn']} disabled={isLoading || isGoogleLoading}>
             {isLoading
               ? 'Please wait...'
               : authModalMode === 'login'
@@ -186,6 +212,31 @@ export default function AuthModal() {
               : 'Create Account'}
           </button>
         </form>
+
+        {/* Google Sign-In Section */}
+        {config.google.clientId && (
+          <>
+            <div className={styles['divider']}>
+              <span>OR</span>
+            </div>
+            
+            <div className={styles['google-signin']}>
+              <GoogleLogin
+                onSuccess={handleGoogleSuccess}
+                onError={handleGoogleError}
+                useOneTap
+                theme="outline"
+                size="large"
+                text={authModalMode === 'login' ? 'signin_with' : 'signup_with'}
+                shape="rectangular"
+                width="100%"
+              />
+              {isGoogleLoading && (
+                <p className={styles['google-loading']}>Signing in with Google...</p>
+              )}
+            </div>
+          </>
+        )}
 
         <div className={styles['switch-mode']}>
           <span>

@@ -58,6 +58,38 @@ export const authService = {
   },
 
   /**
+   * Login with Google OAuth
+   * Sends Google credential token to backend for verification
+   */
+  async googleLogin(credential: string): Promise<void> {
+    const response = await fetch(config.api.auth.google, {
+      method: 'POST',
+      credentials: 'include', // REQUIRED for cookies
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ credential }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ message: 'Google authentication failed' }));
+      // Provide user-friendly error messages
+      if (error.message?.includes('not configured')) {
+        throw new Error('Google Sign-In is not available at this time');
+      }
+      if (error.message?.includes('Email not provided')) {
+        throw new Error('Please allow email access to sign in with Google');
+      }
+      if (error.message?.includes('not verified')) {
+        throw new Error('Please verify your Google email before signing in');
+      }
+      throw new Error(error.message || 'Google authentication failed');
+    }
+
+    // SSO sets HttpOnly cookies - no need to handle tokens manually
+  },
+
+  /**
    * Redirect to SSO password reset page
    */
   redirectToPasswordReset(): void {

@@ -9,6 +9,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   login: (username: string, password: string) => Promise<void>;
   register: (username: string, email: string, password: string) => Promise<void>;
+  googleLogin: (credential: string) => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
   showAuthModal: boolean;
@@ -122,6 +123,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   /**
+   * Login with Google OAuth
+   */
+  const googleLogin = async (credential: string) => {
+    await authService.googleLogin(credential);
+    const userData = await authService.getCurrentUser();
+    setUser(userData);
+    setShowAuthModal(false);
+    
+    // Show success animation
+    setShowConfetti(true);
+    addToast({
+      type: 'success',
+      title: `Welcome, ${userData.username}!`,
+      message: 'Signed in with Google successfully',
+    });
+    setTimeout(() => setShowConfetti(false), 3000);
+  };
+
+  /**
    * Logout via SSO - clears cookies
    */
   const logout = async () => {
@@ -155,6 +175,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isAuthenticated: !!user,
         login,
         register,
+        googleLogin,
         logout,
         refreshUser,
         showAuthModal,

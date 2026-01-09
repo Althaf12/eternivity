@@ -18,6 +18,20 @@ jobs:
           cd /opt/eternivity
           sudo -u eternivity npm install
 
+      - name: Inject VITE_GOOGLE_CLIENT_ID into .env.production
+        # The secret is stored in the repository secrets. This step updates or appends
+        # the VITE_GOOGLE_CLIENT_ID entry in the checked-out .env.production so the
+        # frontend build receives the value during `npm run build` on the self-hosted runner.
+        env:
+          VITE_GOOGLE_CLIENT_ID: ${{ secrets.VITE_GOOGLE_CLIENT_ID }}
+        run: |
+          cd /opt/eternivity
+          if sudo -u eternivity grep -q '^VITE_GOOGLE_CLIENT_ID=' .env.production; then
+            sudo -u eternivity sed -i "s/^VITE_GOOGLE_CLIENT_ID=.*/VITE_GOOGLE_CLIENT_ID=${VITE_GOOGLE_CLIENT_ID}/" .env.production
+          else
+            echo "VITE_GOOGLE_CLIENT_ID=${VITE_GOOGLE_CLIENT_ID}" | sudo -u eternivity tee -a .env.production
+          fi
+
       - name: Build frontend
         run: |
           cd /opt/eternivity

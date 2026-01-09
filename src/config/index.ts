@@ -3,6 +3,7 @@ const DEFAULT_AUTH_BASE = (typeof window !== 'undefined' && window.location && w
   ? 'http://localhost:8080'
   : 'https://auth.eternivity.com';
 const AUTH_BASE_URL = import.meta.env.VITE_AUTH_BASE_URL || DEFAULT_AUTH_BASE;
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
 
 export const config = {
   api: {
@@ -13,6 +14,7 @@ export const config = {
       me: `${AUTH_BASE_URL}/api/auth/me`,
       refresh: `${AUTH_BASE_URL}/api/auth/refresh`,
       logout: `${AUTH_BASE_URL}/api/auth/logout`,
+      google: `${AUTH_BASE_URL}/api/auth/google`,
       // Login page URL (for redirect)
       loginPage: `${AUTH_BASE_URL}/login`,
       // Legacy endpoints (kept for reference, will not be used)
@@ -20,6 +22,9 @@ export const config = {
       login: `${API_BASE_URL}${import.meta.env.VITE_AUTH_LOGIN_URL || '/auth/login'}`,
       passwordReset: `${API_BASE_URL}${import.meta.env.VITE_AUTH_PASSWORD_RESET_URL || '/auth/password-reset'}`,
     },
+  },
+  google: {
+    clientId: GOOGLE_CLIENT_ID,
   },
   services: {
     expenseTracker: import.meta.env.VITE_EXPENSE_TRACKER_URL || 'https://expensetracker.eternivity.com',
