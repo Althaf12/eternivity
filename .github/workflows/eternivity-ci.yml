@@ -11,7 +11,7 @@ jobs:
     steps:
       - name: Pull latest code from main branch
         run: |
-          sudo -u eternivity git -C /opt/eternivity pull origin main
+          sudo -u eternivity git -C /opt/eternivity fetch origin && sudo -u eternivity git -C /opt/eternivity reset --hard origin/main && sudo -u eternivity git -C /opt/eternivity clean -fd
 
       - name: Install dependencies (npm)
         run: |
