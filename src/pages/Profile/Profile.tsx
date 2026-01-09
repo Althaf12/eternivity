@@ -28,6 +28,7 @@ export default function Profile() {
     if (!userObj) return null;
 
     const candidates: Array<string | undefined> = [
+      (userObj as any).profileImageUrl,
       (userObj as any).picture,
       (userObj as any).avatarUrl,
       (userObj.services as any)?.google?.picture,
