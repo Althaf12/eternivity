@@ -68,7 +68,11 @@ export default function Header() {
               aria-label="Profile menu"
               aria-expanded={showDropdown}
             >
-              {user ? getInitials(user.username) : '?'}
+              {user?.profileImageUrl ? (
+                <img src={user.profileImageUrl} alt={`${user.username} profile`} className={styles['profile-img']} />
+              ) : (
+                user ? getInitials(user.username) : '?'
+              )}
             </button>
             
             {showDropdown && (

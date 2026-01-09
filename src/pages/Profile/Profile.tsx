@@ -24,30 +24,7 @@ export default function Profile() {
     return username.slice(0, 2).toUpperCase();
   };
 
-  const getGoogleImageUrl = (userObj: any) => {
-    if (!userObj) return null;
 
-    const candidates: Array<string | undefined> = [
-      (userObj as any).profileImageUrl,
-      (userObj as any).picture,
-      (userObj as any).avatarUrl,
-      (userObj.services as any)?.google?.picture,
-      (userObj.services as any)?.google?.pictureUrl,
-      (userObj.services as any)?.google?.avatar,
-      (userObj.services as any)?.google?.profile?.picture,
-      (userObj.services as any)?.google?.profile?.pictureUrl,
-      (userObj.services as any)?.google?.raw?.picture,
-      (userObj.services as any)?.google?.raw?.pictureUrl,
-      ...(Object.values(userObj.services || {}) as any[])
-        .map((s) => s && (s.picture || s.pictureUrl || (s.profile && (s.profile.picture || s.profile.pictureUrl))))
-        .filter(Boolean),
-    ];
-
-    for (const c of candidates) {
-      if (typeof c === 'string' && c.trim()) return c;
-    }
-    return null;
-  };
 
   const handleResetPassword = () => {
     // Redirect to SSO password reset page
@@ -67,13 +44,11 @@ export default function Profile() {
         <div className={styles['profile-card']}>
           <div className={styles['avatar-section']}>
             <div className={styles['avatar-large']}>
-              {(() => {
-                const img = getGoogleImageUrl(user);
-                if (img) {
-                  return <img src={img} alt={`${user?.username} profile`} />;
-                }
-                return user ? getInitials(user.username) : '?';
-              })()}
+              {user?.profileImageUrl ? (
+                <img src={user.profileImageUrl} alt={`${user.username} profile`} />
+              ) : (
+                user ? getInitials(user.username) : '?'
+              )}
             </div>
             <div className={styles['user-info']}>
               <h4>{user?.username}</h4>

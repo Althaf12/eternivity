@@ -3,6 +3,7 @@ export interface User {
   username: string;
   email: string;
   services: Record<string, unknown>;
+  profileImageUrl?: string;
 }
 
 // Legacy types kept for reference - not used with centralized SSO
