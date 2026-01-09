@@ -131,15 +131,17 @@ export default function AuthModal() {
           {error && <div className={styles['error-message']}>{error}</div>}
 
           <div className={styles['form-group']}>
-            <label htmlFor="username">Username</label>
+            <label htmlFor="username">
+              {authModalMode === 'login' ? 'Username or Email' : 'Username'}
+            </label>
             <input
               type="text"
               id="username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              placeholder="Enter your username"
+              placeholder={authModalMode === 'login' ? 'Enter username or email' : 'Enter your username'}
               required
-              autoComplete="username"
+              autoComplete={authModalMode === 'login' ? 'username email' : 'username'}
             />
           </div>
 
