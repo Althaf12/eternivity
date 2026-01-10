@@ -14,17 +14,17 @@ let refreshPromise: Promise<boolean> | null = null;
  */
 export const authService = {
   /**
-   * Login with username and password
+   * Login with username/email and password
    * Posts credentials to centralized SSO
    */
-  async login(username: string, password: string): Promise<void> {
+  async login(identifier: string, password: string): Promise<void> {
     const response = await fetch(`${config.api.auth.baseUrl}/api/auth/login`, {
       method: 'POST',
       credentials: 'include', // REQUIRED for cookies
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ username, password }),
+      body: JSON.stringify({ identifier, password }),
     });
 
     if (!response.ok) {
