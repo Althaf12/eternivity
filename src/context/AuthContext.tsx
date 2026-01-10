@@ -126,8 +126,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
    * Login with Google OAuth
    */
   const googleLogin = async (credential: string) => {
-    // googleLogin returns user data directly (includes profileImageUrl from Google)
-    const userData = await authService.googleLogin(credential);
+    await authService.googleLogin(credential);
+    // Call /me to get full user data including services and profileImageUrl
+    const userData = await authService.getCurrentUser();
     setUser(userData);
     setShowAuthModal(false);
     
