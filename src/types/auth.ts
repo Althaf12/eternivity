@@ -4,6 +4,8 @@ export interface User {
   email: string;
   services: Record<string, unknown>;
   profileImageUrl?: string;
+  hasPassword: boolean;
+  authProviders: string[];
 }
 
 // Legacy types kept for reference - not used with centralized SSO

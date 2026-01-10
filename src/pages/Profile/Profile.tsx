@@ -1,11 +1,17 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { authService } from '../../services/authService';
 import styles from './Profile.module.css';
 
 export default function Profile() {
-  const { user, isAuthenticated, isLoading, logout } = useAuth();
+  const { user, isAuthenticated, isLoading, logout, refreshUser } = useAuth();
+  const [showSetPasswordModal, setShowSetPasswordModal] = useState(false);
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [setPasswordError, setSetPasswordError] = useState('');
+  const [setPasswordSuccess, setSetPasswordSuccess] = useState('');
+  const [isSettingPassword, setIsSettingPassword] = useState(false);
 
   // Redirect to home if not authenticated
   if (!isLoading && !isAuthenticated) {
@@ -24,11 +30,55 @@ export default function Profile() {
     return username.slice(0, 2).toUpperCase();
   };
 
-
+  // Check if user needs to set password (OAuth user without password)
+  const needsPasswordSetup = user && !user.hasPassword && !user.authProviders?.includes('LOCAL');
 
   const handleResetPassword = () => {
     // Redirect to SSO password reset page
     authService.redirectToPasswordReset();
+  };
+
+  const handleSetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSetPasswordError('');
+    setSetPasswordSuccess('');
+
+    if (password.length < 8) {
+      setSetPasswordError('Password must be at least 8 characters long');
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setSetPasswordError('Passwords do not match');
+      return;
+    }
+
+    setIsSettingPassword(true);
+    try {
+      await authService.setPassword(password, confirmPassword);
+      setSetPasswordSuccess('Password set successfully! You can now log in with your email and password.');
+      setPassword('');
+      setConfirmPassword('');
+      // Refresh user data to update hasPassword
+      await refreshUser();
+      // Close modal after a delay
+      setTimeout(() => {
+        setShowSetPasswordModal(false);
+        setSetPasswordSuccess('');
+      }, 2000);
+    } catch (err) {
+      setSetPasswordError(err instanceof Error ? err.message : 'Failed to set password');
+    } finally {
+      setIsSettingPassword(false);
+    }
+  };
+
+  const openSetPasswordModal = () => {
+    setPassword('');
+    setConfirmPassword('');
+    setSetPasswordError('');
+    setSetPasswordSuccess('');
+    setShowSetPasswordModal(true);
   };
 
   // Get subscription list from user services
@@ -71,12 +121,21 @@ export default function Profile() {
           </div>
 
           <div className={styles.actions}>
-            <button
-              className={`${styles['action-btn']} ${styles.primary}`}
-              onClick={handleResetPassword}
-            >
-              🔐 Reset Password
-            </button>
+            {needsPasswordSetup ? (
+              <button
+                className={`${styles['action-btn']} ${styles.primary}`}
+                onClick={openSetPasswordModal}
+              >
+                🔐 Set Password
+              </button>
+            ) : (
+              <button
+                className={`${styles['action-btn']} ${styles.primary}`}
+                onClick={handleResetPassword}
+              >
+                🔐 Reset Password
+              </button>
+            )}
             <button
               className={`${styles['action-btn']} ${styles.danger}`}
               onClick={logout}
@@ -147,6 +206,71 @@ export default function Profile() {
           )}
         </div>
       </div>
+
+      {/* Set Password Modal */}
+      {showSetPasswordModal && (
+        <div className={styles['modal-overlay']} onClick={() => setShowSetPasswordModal(false)}>
+          <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+            <h3>Set Your Password</h3>
+            <p>Create a password to enable email/password login alongside your Google account.</p>
+            
+            <form onSubmit={handleSetPassword}>
+              {setPasswordError && (
+                <div className={`${styles.message} ${styles.error}`}>{setPasswordError}</div>
+              )}
+              {setPasswordSuccess && (
+                <div className={`${styles.message} ${styles.success}`}>{setPasswordSuccess}</div>
+              )}
+
+              <div className={styles['form-group']}>
+                <label htmlFor="newPassword">New Password</label>
+                <input
+                  type="password"
+                  id="newPassword"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Enter new password (min 8 characters)"
+                  required
+                  minLength={8}
+                  disabled={isSettingPassword}
+                />
+              </div>
+
+              <div className={styles['form-group']}>
+                <label htmlFor="confirmNewPassword">Confirm Password</label>
+                <input
+                  type="password"
+                  id="confirmNewPassword"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Confirm your password"
+                  required
+                  minLength={8}
+                  disabled={isSettingPassword}
+                />
+              </div>
+
+              <div className={styles['modal-actions']}>
+                <button
+                  type="button"
+                  className={`${styles['action-btn']} ${styles.secondary}`}
+                  onClick={() => setShowSetPasswordModal(false)}
+                  disabled={isSettingPassword}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className={`${styles['action-btn']} ${styles.primary}`}
+                  disabled={isSettingPassword}
+                >
+                  {isSettingPassword ? 'Setting...' : 'Set Password'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </section>
   );
 }

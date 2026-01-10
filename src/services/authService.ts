@@ -121,6 +121,25 @@ export const authService = {
   },
 
   /**
+   * Set password for users who signed up via OAuth (no password set)
+   */
+  async setPassword(password: string, confirmPassword: string): Promise<void> {
+    const response = await fetch(config.api.auth.setPassword, {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ password, confirmPassword }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ message: 'Failed to set password' }));
+      throw new Error(error.message || 'Failed to set password');
+    }
+  },
+
+  /**
    * Attempt to refresh the authentication token
    * Returns true if refresh was successful, false otherwise
    */

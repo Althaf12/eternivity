@@ -15,6 +15,7 @@ export const config = {
       refresh: `${AUTH_BASE_URL}/api/auth/refresh`,
       logout: `${AUTH_BASE_URL}/api/auth/logout`,
       google: `${AUTH_BASE_URL}/api/auth/google`,
+      setPassword: `${AUTH_BASE_URL}/api/auth/set-password`,
       // Login page URL (for redirect)
       loginPage: `${AUTH_BASE_URL}/login`,
       // Legacy endpoints (kept for reference, will not be used)
