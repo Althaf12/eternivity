@@ -291,3 +291,42 @@
     font-size: 1.5rem;
   }
 }
+
+/* Forgot Password Link */
+.forgot-password-link {
+  background: none;
+  border: none;
+  color: var(--accent);
+  font-size: 0.85rem;
+  cursor: pointer;
+  padding: 4px 0;
+  margin-top: 4px;
+  text-align: right;
+  transition: color 0.2s ease;
+  align-self: flex-end;
+}
+
+.forgot-password-link:hover {
+  color: #a78bfa;
+  text-decoration: underline;
+}
+
+/* Success Message */
+.success-message {
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  border-radius: 12px;
+  padding: 24px;
+  text-align: center;
+}
+
+.success-message p {
+  color: #a7f3d0;
+  margin: 0 0 16px;
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.success-message p:last-of-type {
+  margin-bottom: 24px;
+}

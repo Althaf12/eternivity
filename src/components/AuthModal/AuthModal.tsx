@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { GoogleLogin, CredentialResponse } from '@react-oauth/google';
 import { useAuth } from '../../context/AuthContext';
+import { authService } from '../../services/authService';
 import { config } from '../../config';
 import styles from './AuthModal.module.css';
 
@@ -13,6 +14,9 @@ export default function AuthModal() {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
+  const [forgotPasswordSuccess, setForgotPasswordSuccess] = useState(false);
 
   // Reset form when modal opens/closes or mode changes
   useEffect(() => {
@@ -22,6 +26,9 @@ export default function AuthModal() {
       setPassword('');
       setConfirmPassword('');
       setError('');
+      setShowForgotPassword(false);
+      setForgotPasswordEmail('');
+      setForgotPasswordSuccess(false);
     }
   }, [showAuthModal, authModalMode]);
 
@@ -74,7 +81,41 @@ export default function AuthModal() {
 
   const switchMode = () => {
     setError('');
+    setShowForgotPassword(false);
+    setForgotPasswordSuccess(false);
     openAuthModal(authModalMode === 'login' ? 'register' : 'login');
+  };
+
+  const validateEmail = (emailToValidate: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(emailToValidate);
+  };
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+
+    if (!validateEmail(forgotPasswordEmail)) {
+      setError('Please enter a valid email address');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      await authService.forgotPassword(forgotPasswordEmail);
+      setForgotPasswordSuccess(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to send reset email');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleBackToLogin = () => {
+    setShowForgotPassword(false);
+    setForgotPasswordEmail('');
+    setForgotPasswordSuccess(false);
+    setError('');
   };
 
   const getPasswordStrength = (pwd: string): number => {
@@ -118,25 +159,83 @@ export default function AuthModal() {
           ×
         </button>
         
-        <div className={styles['modal-header']}>
-          <h2>{authModalMode === 'login' ? 'Welcome Back' : 'Create Account'}</h2>
-          <p>
-            {authModalMode === 'login'
-              ? 'Sign in to access your services'
-              : 'Join Eternivity™ today'}
-          </p>
-        </div>
+        {/* Forgot Password View */}
+        {showForgotPassword ? (
+          <>
+            <div className={styles['modal-header']}>
+              <h2>Reset Password</h2>
+              <p>
+                {forgotPasswordSuccess
+                  ? 'Check your email for reset instructions'
+                  : 'Enter your email to receive a reset link'}
+              </p>
+            </div>
 
-        <form className={styles.form} onSubmit={handleSubmit}>
-          {error && <div className={styles['error-message']}>{error}</div>}
+            {forgotPasswordSuccess ? (
+              <div className={styles['success-message']}>
+                <p>We've sent a password reset link to <strong>{forgotPasswordEmail}</strong></p>
+                <p>Please check your inbox and follow the instructions to reset your password.</p>
+                <button
+                  type="button"
+                  className={styles['submit-btn']}
+                  onClick={handleBackToLogin}
+                >
+                  Back to Sign In
+                </button>
+              </div>
+            ) : (
+              <form className={styles.form} onSubmit={handleForgotPassword}>
+                {error && <div className={styles['error-message']}>{error}</div>}
 
-          <div className={styles['form-group']}>
-            <label htmlFor="username">
-              {authModalMode === 'login' ? 'Username or Email' : 'Username'}
-            </label>
-            <input
-              type="text"
-              id="username"
+                <div className={styles['form-group']}>
+                  <label htmlFor="forgotEmail">Email Address</label>
+                  <input
+                    type="email"
+                    id="forgotEmail"
+                    value={forgotPasswordEmail}
+                    onChange={(e) => setForgotPasswordEmail(e.target.value)}
+                    placeholder="Enter your email address"
+                    required
+                    autoComplete="email"
+                  />
+                </div>
+
+                <button type="submit" className={styles['submit-btn']} disabled={isLoading}>
+                  {isLoading ? 'Sending...' : 'Send Reset Link'}
+                </button>
+              </form>
+            )}
+
+            {!forgotPasswordSuccess && (
+              <div className={styles['switch-mode']}>
+                <span>Remember your password?</span>
+                <button type="button" onClick={handleBackToLogin}>
+                  Sign In
+                </button>
+              </div>
+            )}
+          </>
+        ) : (
+          <>
+            <div className={styles['modal-header']}>
+              <h2>{authModalMode === 'login' ? 'Welcome Back' : 'Create Account'}</h2>
+              <p>
+                {authModalMode === 'login'
+                  ? 'Sign in to access your services'
+                  : 'Join Eternivity™ today'}
+              </p>
+            </div>
+
+            <form className={styles.form} onSubmit={handleSubmit}>
+              {error && <div className={styles['error-message']}>{error}</div>}
+
+              <div className={styles['form-group']}>
+                <label htmlFor="username">
+                  {authModalMode === 'login' ? 'Username or Email' : 'Username'}
+                </label>
+                <input
+                  type="text"
+                  id="username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               placeholder={authModalMode === 'login' ? 'Enter username or email' : 'Enter your username'}
@@ -171,6 +270,15 @@ export default function AuthModal() {
               required
               autoComplete={authModalMode === 'login' ? 'current-password' : 'new-password'}
             />
+            {authModalMode === 'login' && (
+              <button
+                type="button"
+                className={styles['forgot-password-link']}
+                onClick={() => setShowForgotPassword(true)}
+              >
+                Forgot password?
+              </button>
+            )}
             {authModalMode === 'register' && password && (
               <div className={styles['password-strength']}>
                 {[1, 2, 3, 4].map((level) => (
@@ -248,6 +356,8 @@ export default function AuthModal() {
             {authModalMode === 'login' ? 'Sign Up' : 'Sign In'}
           </button>
         </div>
+          </>
+        )}
       </div>
     </div>
   );

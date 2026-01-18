@@ -98,6 +98,45 @@ export const authService = {
   },
 
   /**
+   * Request password reset email
+   * Sends a reset token to the user's email
+   */
+  async forgotPassword(email: string): Promise<void> {
+    const response = await fetch(`${config.api.auth.baseUrl}/api/auth/forgot-password`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ message: 'Failed to send reset email' }));
+      throw new Error(error.message || 'Failed to send reset email');
+    }
+  },
+
+  /**
+   * Reset password using token from email
+   */
+  async resetPassword(token: string, newPassword: string): Promise<void> {
+    const response = await fetch(`${config.api.auth.baseUrl}/api/auth/reset-password`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ token, newPassword }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ message: 'Failed to reset password' }));
+      throw new Error(error.message || 'Failed to reset password');
+    }
+  },
+
+  /**
    * Get current user info from SSO
    * Relies on HttpOnly cookies for authentication
    */

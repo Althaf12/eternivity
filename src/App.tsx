@@ -5,6 +5,7 @@ import Home from './pages/Home/Home'
 import About from './pages/About/About'
 import Contact from './pages/Contact/Contact'
 import Profile from './pages/Profile/Profile'
+import ResetPassword from './pages/ResetPassword/ResetPassword'
 import Header from './components/Header/Header'
 import Footer from './components/Footer/Footer'
 import AuthModal from './components/AuthModal/AuthModal'
@@ -23,6 +24,7 @@ function AppContent() {
             <Route path="/about" element={<About />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/profile" element={<Profile />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
           </Routes>
         </main>
         <Footer />
