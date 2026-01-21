@@ -48,8 +48,8 @@ export default function ResetPassword() {
       return;
     }
 
-    if (password.length < 8) {
-      setError('Password must be at least 8 characters long');
+    if (!password) {
+      setError('Please enter a new password');
       return;
     }
 
@@ -63,7 +63,10 @@ export default function ResetPassword() {
       await authService.resetPassword(token, password);
       setIsSuccess(true);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to reset password');
+      // Display the exact error message from backend
+      // This handles cases like: "New password cannot be the same as your current password",
+      // "Password must contain at least one uppercase letter", etc.
+      setError(err instanceof Error ? err.message : 'Failed to reset password. Please try again.');
     } finally {
       setIsLoading(false);
     }
