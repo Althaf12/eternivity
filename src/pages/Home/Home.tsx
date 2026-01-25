@@ -95,7 +95,8 @@ export default function Home() {
               <article className={styles.card}>
                 <div className={styles['card-icon']}>🔐</div>
                 <h3>PasswordVault</h3>
-                <p>Securely store and manage your passwords across services with strong encryption.</p>
+                <p>Securely store and manage your passwords across services with strong encryption.
+                  <br />(App in development)</p>
                 <a
                   className={styles.btn}
                   href={config.services.passwordVault}
