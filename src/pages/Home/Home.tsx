@@ -80,7 +80,7 @@ export default function Home() {
             <article className={styles.card}>
               <div className={styles['card-icon']}>💰</div>
               <h3>ExpenseTracker</h3>
-              <p>Personal expense tracking — simple, private, and fast. Track your spending habits and manage your budget effectively.</p>
+              <p>Personal expense tracking. Simple, private, and fast. Track your spending habits and manage your budget effectively.</p>
               <a 
                 className={styles.btn} 
                 href={config.services.expenseTracker}
@@ -92,7 +92,22 @@ export default function Home() {
               </a>
             </article>
             
-            <article className={styles.card}>
+              <article className={styles.card}>
+                <div className={styles['card-icon']}>🔐</div>
+                <h3>PasswordVault</h3>
+                <p>Securely store and manage your passwords across services with strong encryption.</p>
+                <a
+                  className={styles.btn}
+                  href={config.services.passwordVault}
+                  onClick={(e) => handleServiceClick(e, config.services.passwordVault)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Open PasswordVault
+                </a>
+              </article>
+
+              <article className={styles.card}>
               <div className={styles['card-icon']}>📝</div>
               <h3>More Coming Soon</h3>
               <p>We're working on exciting new services. Stay tuned for task managers, note-taking apps, and more!</p>

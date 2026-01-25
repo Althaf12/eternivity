@@ -29,5 +29,6 @@ export const config = {
   },
   services: {
     expenseTracker: import.meta.env.VITE_EXPENSE_TRACKER_URL || 'https://expensetracker.eternivity.com',
+    passwordVault: import.meta.env.VITE_PASSWORD_VAULT_URL || 'https://passwordvault.eternivity.com',
   },
 };
