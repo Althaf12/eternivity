@@ -79,7 +79,7 @@ export default function Home() {
           <div className={styles.cards}>
             <article className={styles.card}>
               <div className={styles['card-icon']}>💰</div>
-              <h3>ExpenseTracker</h3>
+              <h3>Expense Tracker</h3>
               <p>Personal expense tracking. Simple, private, and fast. Track your spending habits and manage your budget effectively.</p>
               <a 
                 className={styles.btn} 
@@ -88,13 +88,13 @@ export default function Home() {
                 target="_blank" 
                 rel="noopener noreferrer"
               >
-                Open ExpenseTracker
+                Open Expense Tracker
               </a>
             </article>
             
               <article className={styles.card}>
                 <div className={styles['card-icon']}>🔐</div>
-                <h3>PasswordVault</h3>
+                <h3>Password Vault</h3>
                 <p>Securely store and manage your passwords across services with strong encryption.
                   <br />(App in development)</p>
                 <a
@@ -104,7 +104,7 @@ export default function Home() {
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  Open PasswordVault
+                  Open Password Vault
                 </a>
               </article>
 
