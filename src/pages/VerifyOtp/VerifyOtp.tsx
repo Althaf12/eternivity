@@ -11,15 +11,18 @@ export default function VerifyOtp() {
 
   const mfaToken = location.state?.mfaToken as string | undefined;
   const identifier = location.state?.identifier as string | undefined;
+  const redirectUri = location.state?.redirectUri as string | undefined;
 
   const [otp, setOtp] = useState<string[]>(Array(6).fill(''));
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
-  // Focus first input on mount
+  // Focus first input on mount and clear navigation state to prevent stale data on back/forward
   useEffect(() => {
     inputRefs.current[0]?.focus();
+    // Replace current history entry without state so back/forward won't replay stale mfaToken
+    window.history.replaceState({}, '');
   }, []);
 
   // Redirect if already authenticated
@@ -82,7 +85,11 @@ export default function VerifyOtp() {
     try {
       await authService.verifyMfaLogin(mfaToken, otpCode);
       await completeMfaLogin();
-      navigate('/', { replace: true });
+      if (redirectUri) {
+        window.location.href = redirectUri;
+      } else {
+        navigate('/', { replace: true });
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Invalid OTP code');
       setOtp(Array(6).fill(''));

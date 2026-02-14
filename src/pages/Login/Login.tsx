@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate, Navigate } from 'react-router-dom';
+import { Link, useNavigate, Navigate, useSearchParams } from 'react-router-dom';
 import { GoogleLogin, CredentialResponse } from '@react-oauth/google';
 import { useAuth } from '../../context/AuthContext';
 import { config } from '../../config';
@@ -8,6 +8,8 @@ import styles from './Login.module.css';
 export default function Login() {
   const { isAuthenticated, login, googleLogin } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const redirectUri = searchParams.get('redirect_uri');
 
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
@@ -22,6 +24,10 @@ export default function Login() {
 
   // Redirect if already authenticated
   if (isAuthenticated) {
+    if (redirectUri) {
+      window.location.href = redirectUri;
+      return null;
+    }
     return <Navigate to="/profile" replace />;
   }
 
@@ -34,10 +40,18 @@ export default function Login() {
       const result = await login(identifier, password);
 
       if (result && result.status === 'MFA_REQUIRED') {
-        // Redirect to OTP verification page
-        navigate('/verify-otp', { state: { mfaToken: result.tempToken, identifier } });
+        // Redirect to OTP verification page, preserving redirect_uri
+        navigate('/verify-otp', {
+          state: { mfaToken: result.tempToken, identifier, redirectUri },
+          replace: true,
+        });
+        return;
       }
-      // If SUCCESS, AuthContext handles navigation
+      // If SUCCESS, redirect to redirect_uri or let AuthContext handle
+      if (redirectUri) {
+        window.location.href = redirectUri;
+        return;
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
@@ -58,7 +72,16 @@ export default function Login() {
       const result = await googleLogin(credentialResponse.credential);
 
       if (result && result.status === 'MFA_REQUIRED') {
-        navigate('/verify-otp', { state: { mfaToken: result.tempToken, identifier: 'Google account' } });
+        navigate('/verify-otp', {
+          state: { mfaToken: result.tempToken, identifier: 'Google account', redirectUri },
+          replace: true,
+        });
+        return;
+      }
+      // If SUCCESS, redirect to redirect_uri or let AuthContext handle
+      if (redirectUri) {
+        window.location.href = redirectUri;
+        return;
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Google Sign-In failed');
