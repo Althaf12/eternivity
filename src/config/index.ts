@@ -16,6 +16,11 @@ export const config = {
       logout: `${AUTH_BASE_URL}/api/auth/logout`,
       google: `${AUTH_BASE_URL}/api/auth/google`,
       setPassword: `${AUTH_BASE_URL}/api/auth/set-password`,
+      mfaStatus: `${AUTH_BASE_URL}/api/auth/mfa/status`,
+      mfaSetup: `${AUTH_BASE_URL}/api/auth/mfa/setup`,
+      mfaEnable: `${AUTH_BASE_URL}/api/auth/mfa/enable`,
+      mfaVerify: `${AUTH_BASE_URL}/api/auth/mfa/verify`,
+      mfaDisable: `${AUTH_BASE_URL}/api/auth/mfa/disable`,
       // Login page URL (for redirect)
       loginPage: `${AUTH_BASE_URL}/login`,
       // Legacy endpoints (kept for reference, will not be used)

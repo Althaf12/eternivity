@@ -2,10 +2,11 @@ import React from 'react'
 import styles from './Home.module.css'
 import logo from '/logo/Picture1-min.webp'
 import { useAuth } from '../../context/AuthContext'
+import { Link } from 'react-router-dom'
 import { config } from '../../config'
 
 export default function Home() {
-  const { isAuthenticated, openAuthModal, user } = useAuth();
+  const { isAuthenticated, user } = useAuth();
 
   const handleServiceClick = (e: React.MouseEvent<HTMLAnchorElement>, serviceUrl: string) => {
     // With centralized SSO, authentication is handled via HttpOnly cookies
@@ -26,7 +27,7 @@ export default function Home() {
           <div className={styles['hero-copy']}>
             <h1>Eternivity<span className="tm">TM</span></h1>
             <p className={styles.lead}>
-              Small, focused web services hosted as subdomains — simple, fast, and modular.
+              Small, focused web services hosted as subdomains. Simple, fast, and modular.
             </p>
             <p className={styles.lead}>
               Build your digital toolkit with purpose-driven applications.
@@ -34,12 +35,12 @@ export default function Home() {
             <div className={styles['hero-cta']}>
               {!isAuthenticated ? (
                 <>
-                  <button className="btn-primary" onClick={() => openAuthModal('register')}>
+                  <Link to="/register" className="btn-primary">
                     Get Started Free
-                  </button>
-                  <button className="btn-secondary" onClick={() => openAuthModal('login')}>
+                  </Link>
+                  <Link to="/login" className="btn-secondary">
                     Sign In
-                  </button>
+                  </Link>
                 </>
               ) : (
                 <span className={styles.badge}>

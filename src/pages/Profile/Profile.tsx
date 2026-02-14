@@ -13,9 +13,17 @@ export default function Profile() {
   const [setPasswordSuccess, setSetPasswordSuccess] = useState('');
   const [isSettingPassword, setIsSettingPassword] = useState(false);
 
-  // Redirect to home if not authenticated
+  // MFA state
+  const [mfaStep, setMfaStep] = useState<'idle' | 'loading' | 'qr' | 'success' | 'disable'>('idle');
+  const [mfaQrImage, setMfaQrImage] = useState('');
+  const [mfaSecret, setMfaSecret] = useState('');
+  const [mfaOtp, setMfaOtp] = useState('');
+  const [mfaError, setMfaError] = useState('');
+  const [mfaLoading, setMfaLoading] = useState(false);
+
+  // Redirect to login if not authenticated
   if (!isLoading && !isAuthenticated) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/login" replace />;
   }
 
   if (isLoading) {
@@ -79,6 +87,70 @@ export default function Profile() {
     setSetPasswordError('');
     setSetPasswordSuccess('');
     setShowSetPasswordModal(true);
+  };
+
+  // ---- MFA Handlers ----
+  const handleEnableMfa = async () => {
+    setMfaStep('loading');
+    setMfaError('');
+    try {
+      const data = await authService.setupMfa();
+      setMfaQrImage(data.qrCodeImage);
+      setMfaSecret(data.secret);
+      setMfaStep('qr');
+    } catch (err) {
+      setMfaError(err instanceof Error ? err.message : 'Failed to setup MFA');
+      setMfaStep('idle');
+    }
+  };
+
+  const handleVerifyMfaSetup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (mfaOtp.length !== 6) {
+      setMfaError('Please enter a 6-digit code');
+      return;
+    }
+    setMfaError('');
+    setMfaLoading(true);
+    try {
+      await authService.enableMfa(mfaSecret, mfaOtp);
+      setMfaStep('success');
+      setMfaOtp('');
+      await refreshUser();
+    } catch (err) {
+      setMfaError(err instanceof Error ? err.message : 'Invalid OTP code');
+    } finally {
+      setMfaLoading(false);
+    }
+  };
+
+  const handleDisableMfa = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (mfaOtp.length !== 6) {
+      setMfaError('Please enter a 6-digit code');
+      return;
+    }
+    setMfaError('');
+    setMfaLoading(true);
+    try {
+      await authService.disableMfa(mfaOtp);
+      setMfaStep('idle');
+      setMfaOtp('');
+      setMfaError('');
+      await refreshUser();
+    } catch (err) {
+      setMfaError(err instanceof Error ? err.message : 'Failed to disable MFA');
+    } finally {
+      setMfaLoading(false);
+    }
+  };
+
+  const resetMfaState = () => {
+    setMfaStep('idle');
+    setMfaQrImage('');
+    setMfaSecret('');
+    setMfaOtp('');
+    setMfaError('');
   };
 
   // Get subscription list from user services
@@ -218,6 +290,163 @@ export default function Profile() {
               <p style={{ fontSize: '0.85rem' }}>
                 Explore our services and subscribe to unlock premium features!
               </p>
+            </div>
+          )}
+        </div>
+
+        {/* MFA / Two-Factor Authentication */}
+        <div className={styles['profile-card']}>
+          <div className={styles['card-header']}>
+            <span>🛡️</span>
+            <h3>Two-Factor Authentication</h3>
+          </div>
+
+          {user?.mfaEnabled ? (
+            /* MFA is currently enabled */
+            <div className={styles['mfa-section']}>
+              <div className={styles['mfa-status-badge']}>
+                <span className={styles['mfa-status-dot']} />
+                MFA is enabled
+              </div>
+              <p className={styles['mfa-desc']}>
+                Your account is protected with Google Authenticator.
+              </p>
+
+              {mfaStep === 'disable' ? (
+                <form onSubmit={handleDisableMfa} className={styles['mfa-form']}>
+                  {mfaError && (
+                    <div className={`${styles.message} ${styles.error}`}>{mfaError}</div>
+                  )}
+                  <div className={styles['form-group']}>
+                    <label htmlFor="disableOtp">Enter OTP to confirm</label>
+                    <input
+                      type="text"
+                      id="disableOtp"
+                      inputMode="numeric"
+                      maxLength={6}
+                      value={mfaOtp}
+                      onChange={(e) => setMfaOtp(e.target.value.replace(/\D/g, ''))}
+                      placeholder="6-digit code"
+                      required
+                      disabled={mfaLoading}
+                    />
+                  </div>
+                  <div className={styles['mfa-actions']}>
+                    <button
+                      type="button"
+                      className={`${styles['action-btn']} ${styles.secondary}`}
+                      onClick={() => { setMfaStep('idle'); setMfaOtp(''); setMfaError(''); }}
+                      disabled={mfaLoading}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className={`${styles['action-btn']} ${styles.danger}`}
+                      disabled={mfaLoading}
+                    >
+                      {mfaLoading ? 'Disabling...' : 'Disable MFA'}
+                    </button>
+                  </div>
+                </form>
+              ) : (
+                <button
+                  className={`${styles['action-btn']} ${styles.danger}`}
+                  onClick={() => { setMfaStep('disable'); setMfaOtp(''); setMfaError(''); }}
+                >
+                  🔓 Disable MFA
+                </button>
+              )}
+            </div>
+          ) : (
+            /* MFA is not enabled */
+            <div className={styles['mfa-section']}>
+              {mfaStep === 'idle' && (
+                <>
+                  <p className={styles['mfa-desc']}>
+                    Add an extra layer of security to your account using Google Authenticator.
+                  </p>
+                  <button
+                    className={`${styles['action-btn']} ${styles.primary}`}
+                    onClick={handleEnableMfa}
+                  >
+                    🛡️ Enable MFA
+                  </button>
+                </>
+              )}
+
+              {mfaStep === 'loading' && (
+                <div className={styles['mfa-loading']}>
+                  <p>Setting up MFA...</p>
+                </div>
+              )}
+
+              {mfaStep === 'qr' && (
+                <div className={styles['mfa-setup']}>
+                  <p className={styles['mfa-desc']}>
+                    Scan this QR code with Google Authenticator, then enter the 6-digit code below.
+                  </p>
+                  <div className={styles['mfa-qr']}>
+                    <img src={mfaQrImage} alt="MFA QR Code" />
+                  </div>
+                  {mfaSecret && (
+                    <div className={styles['mfa-secret']}>
+                      <label>Manual entry key:</label>
+                      <code>{mfaSecret}</code>
+                    </div>
+                  )}
+                  <form onSubmit={handleVerifyMfaSetup} className={styles['mfa-form']}>
+                    {mfaError && (
+                      <div className={`${styles.message} ${styles.error}`}>{mfaError}</div>
+                    )}
+                    <div className={styles['form-group']}>
+                      <label htmlFor="setupOtp">Verification Code</label>
+                      <input
+                        type="text"
+                        id="setupOtp"
+                        inputMode="numeric"
+                        maxLength={6}
+                        value={mfaOtp}
+                        onChange={(e) => setMfaOtp(e.target.value.replace(/\D/g, ''))}
+                        placeholder="Enter 6-digit code"
+                        required
+                        disabled={mfaLoading}
+                      />
+                    </div>
+                    <div className={styles['mfa-actions']}>
+                      <button
+                        type="button"
+                        className={`${styles['action-btn']} ${styles.secondary}`}
+                        onClick={resetMfaState}
+                        disabled={mfaLoading}
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        className={`${styles['action-btn']} ${styles.primary}`}
+                        disabled={mfaLoading}
+                      >
+                        {mfaLoading ? 'Verifying...' : 'Verify & Enable'}
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              )}
+
+              {mfaStep === 'success' && (
+                <div className={styles['mfa-success']}>
+                  <span>✅</span>
+                  <h4>MFA Enabled</h4>
+                  <p>Two-factor authentication has been successfully enabled on your account.</p>
+                  <button
+                    className={`${styles['action-btn']} ${styles.primary}`}
+                    onClick={resetMfaState}
+                  >
+                    Done
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </div>

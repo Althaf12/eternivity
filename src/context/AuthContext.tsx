@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
-import { User } from '../types/auth';
+import { User, LoginResponse } from '../types/auth';
 import { authService } from '../services/authService';
 import { ToastData } from '../components/Toast/Toast';
 
@@ -7,15 +7,12 @@ interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   isAuthenticated: boolean;
-  login: (username: string, password: string) => Promise<void>;
+  login: (username: string, password: string) => Promise<LoginResponse | void>;
   register: (username: string, email: string, password: string) => Promise<void>;
   googleLogin: (credential: string) => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
-  showAuthModal: boolean;
-  authModalMode: 'login' | 'register';
-  openAuthModal: (mode: 'login' | 'register') => void;
-  closeAuthModal: () => void;
+  completeMfaLogin: () => Promise<void>;
   toasts: ToastData[];
   removeToast: (id: string) => void;
   showConfetti: boolean;
@@ -26,8 +23,6 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [showAuthModal, setShowAuthModal] = useState(false);
-  const [authModalMode, setAuthModalMode] = useState<'login' | 'register'>('login');
   const [toasts, setToasts] = useState<ToastData[]>([]);
   const [showConfetti, setShowConfetti] = useState(false);
   const [hasShownWelcome, setHasShownWelcome] = useState(false);
@@ -86,14 +81,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   /**
    * Login with username and password
+   * Returns LoginResponse so caller can check for MFA_REQUIRED
    */
-  const login = async (username: string, password: string) => {
-    await authService.login(username, password);
+  const login = async (username: string, password: string): Promise<LoginResponse | void> => {
+    const result = await authService.login(username, password);
+
+    if (result.status === 'MFA_REQUIRED') {
+      // Return the result so the Login page can redirect to /verify-otp
+      return result;
+    }
+
+    // Normal login success
     const userData = await authService.getCurrentUser();
     setUser(userData);
-    setShowAuthModal(false);
     
     // Show success animation
+    setShowConfetti(true);
+    addToast({
+      type: 'success',
+      title: `Welcome back, ${userData.username}!`,
+      message: 'You have successfully logged in',
+    });
+    setTimeout(() => setShowConfetti(false), 3000);
+  };
+
+  /**
+   * Complete login after MFA verification
+   * Fetches user data and shows welcome animations
+   */
+  const completeMfaLogin = async () => {
+    const userData = await authService.getCurrentUser();
+    setUser(userData);
+
     setShowConfetti(true);
     addToast({
       type: 'success',
@@ -110,7 +129,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await authService.register(username, email, password);
     const userData = await authService.getCurrentUser();
     setUser(userData);
-    setShowAuthModal(false);
     
     // Show success animation
     setShowConfetti(true);
@@ -130,7 +148,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Call /me to get full user data including services and profileImageUrl
     const userData = await authService.getCurrentUser();
     setUser(userData);
-    setShowAuthModal(false);
     
     // Show success animation
     setShowConfetti(true);
@@ -159,15 +176,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
   };
 
-  const openAuthModal = (mode: 'login' | 'register') => {
-    setAuthModalMode(mode);
-    setShowAuthModal(true);
-  };
-
-  const closeAuthModal = () => {
-    setShowAuthModal(false);
-  };
-
   return (
     <AuthContext.Provider
       value={{
@@ -179,10 +187,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         googleLogin,
         logout,
         refreshUser,
-        showAuthModal,
-        authModalMode,
-        openAuthModal,
-        closeAuthModal,
+        completeMfaLogin,
         toasts,
         removeToast,
         showConfetti,

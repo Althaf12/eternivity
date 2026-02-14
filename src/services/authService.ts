@@ -1,4 +1,4 @@
-import { User } from '../types/auth';
+import { User, LoginResponse, MfaSetupResponse, MfaStatusResponse } from '../types/auth';
 import { config } from '../config';
 
 // Track if a token refresh is in progress to avoid multiple simultaneous refresh attempts
@@ -17,7 +17,7 @@ export const authService = {
    * Login with username/email and password
    * Posts credentials to centralized SSO
    */
-  async login(identifier: string, password: string): Promise<void> {
+  async login(identifier: string, password: string): Promise<LoginResponse> {
     const response = await fetch(`${config.api.auth.baseUrl}/api/auth/login`, {
       method: 'POST',
       credentials: 'include', // REQUIRED for cookies
@@ -32,7 +32,9 @@ export const authService = {
       throw new Error(error.message || 'Login failed');
     }
 
-    // SSO sets HttpOnly cookies - no need to handle tokens manually
+    const data = await response.json();
+    // Backend may return { status: 'MFA_REQUIRED', tempToken: '...' }
+    return data as LoginResponse;
   },
 
   /**
@@ -230,6 +232,106 @@ export const authService = {
     }
     // SSO server handles clearing HttpOnly cookies
     // The calling code (AuthContext) can handle any UI redirects
+  },
+
+  /**
+   * Get MFA status for the current user
+   */
+  async getMfaStatus(): Promise<MfaStatusResponse> {
+    const response = await fetch(config.api.auth.mfaStatus, {
+      method: 'GET',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ message: 'Failed to get MFA status' }));
+      throw new Error(error.message || 'Failed to get MFA status');
+    }
+
+    return response.json();
+  },
+
+  /**
+   * MFA Setup - Request QR code for Google Authenticator
+   */
+  async setupMfa(): Promise<MfaSetupResponse> {
+    const response = await fetch(config.api.auth.mfaSetup, {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ message: 'Failed to setup MFA' }));
+      throw new Error(error.message || 'Failed to setup MFA');
+    }
+
+    return response.json();
+  },
+
+  /**
+   * Enable MFA - Verify OTP and activate MFA
+   * Requires the secret from setup and the 6-digit code
+   */
+  async enableMfa(secret: string, code: string): Promise<void> {
+    const response = await fetch(config.api.auth.mfaEnable, {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ secret, code }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ message: 'Invalid OTP code' }));
+      throw new Error(error.message || 'Invalid OTP code');
+    }
+  },
+
+  /**
+   * Verify OTP during login (MFA challenge)
+   * Uses the tempToken from login response
+   */
+  async verifyMfaLogin(tempToken: string, code: string): Promise<void> {
+    const response = await fetch(config.api.auth.mfaVerify, {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ tempToken, code }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ message: 'Invalid OTP code' }));
+      throw new Error(error.message || 'Invalid OTP code');
+    }
+  },
+
+  /**
+   * Disable MFA for the current user
+   * Requires a valid 6-digit code for confirmation
+   */
+  async disableMfa(code: string): Promise<void> {
+    const response = await fetch(config.api.auth.mfaDisable, {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ code }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ message: 'Failed to disable MFA' }));
+      throw new Error(error.message || 'Failed to disable MFA');
+    }
   },
 
   /**

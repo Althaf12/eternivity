@@ -6,10 +6,27 @@ export interface User {
   profileImageUrl?: string;
   hasPassword: boolean;
   authProviders: string[];
+  mfaEnabled?: boolean;
 }
 
-// Legacy types kept for reference - not used with centralized SSO
-// Authentication is now handled entirely by auth.eternivity.com via HttpOnly cookies
+export interface LoginResponse {
+  status: 'SUCCESS' | 'MFA_REQUIRED';
+  tempToken?: string;
+  message?: string;
+}
+
+export interface MfaStatusResponse {
+  success: boolean;
+  message: string;
+  mfaEnabled: boolean;
+}
+
+export interface MfaSetupResponse {
+  secret: string;
+  qrCodeUri: string;
+  qrCodeImage: string;
+  message: string;
+}
 
 export interface AuthResponse {
   token: string;

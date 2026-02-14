@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext'
 import styles from './Header.module.css'
 
 export default function Header() {
-  const { isAuthenticated, user, logout, openAuthModal } = useAuth();
+  const { isAuthenticated, user, logout } = useAuth();
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -47,18 +47,18 @@ export default function Header() {
 
         {!isAuthenticated ? (
           <div className={styles['auth-section']}>
-            <button 
+            <Link 
+              to="/login"
               className={`${styles['auth-btn']} ${styles['login-btn']}`}
-              onClick={() => openAuthModal('login')}
             >
               Sign In
-            </button>
-            <button 
+            </Link>
+            <Link 
+              to="/register"
               className={`${styles['auth-btn']} ${styles['register-btn']}`}
-              onClick={() => openAuthModal('register')}
             >
               Get Started
-            </button>
+            </Link>
           </div>
         ) : (
           <div className={styles['profile-section']} ref={dropdownRef}>
