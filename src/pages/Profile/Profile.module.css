@@ -178,6 +178,29 @@
   color: var(--muted);
 }
 
+.subscription-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.subscription-plan {
+  font-size: 0.85rem;
+  color: var(--text-bright);
+  font-weight: 600;
+}
+
+.subscription-expiry {
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+.subscription-raw {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
 .subscription-status {
   padding: 4px 12px;
   border-radius: 20px;

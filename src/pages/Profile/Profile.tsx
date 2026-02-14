@@ -170,6 +170,16 @@ export default function Profile() {
                 const status = (detailObj && (detailObj.status || detailObj.state || detailObj.stateName)) || (detailObj && detailObj.raw ? 'Active' : 'Unknown');
                 const isActive = String(status).toLowerCase() === 'active';
 
+                // Extract expiry date from common backend fields and format it
+                const expiryRaw = detailObj && (
+                  detailObj.expiryDate || detailObj.expiresAt || detailObj.expires_on || detailObj.expiration || detailObj.expires || detailObj.expiry
+                );
+                let expiryDisplay: string | null = null;
+                if (expiryRaw) {
+                  const parsed = new Date(String(expiryRaw));
+                  expiryDisplay = isNaN(parsed.getTime()) ? String(expiryRaw) : parsed.toLocaleDateString();
+                }
+
                 return (
                   <div key={name} className={styles['subscription-item']}>
                     <div className={styles['subscription-info']}>
@@ -177,7 +187,13 @@ export default function Profile() {
                       <div className={styles['subscription-details']}>
                         <h5>{name}</h5>
                         <div className={styles['subscription-meta']}>
-                          <span className={styles['subscription-plan']}>Plan: {String(plan)}</span>
+                          <div style={{ display: 'flex', gap: '0.6rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                            <span className={styles['subscription-plan']}>Plan: {String(plan)}</span>
+                            {expiryDisplay && (
+                              <span className={styles['subscription-expiry']}>Expires: {expiryDisplay}</span>
+                            )}
+                          </div>
+
                           {detailObj && detailObj.raw && (
                             <small className={styles['subscription-raw']}>{String(detailObj.raw)}</small>
                           )}
