@@ -9,7 +9,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   login: (username: string, password: string) => Promise<LoginResponse | void>;
   register: (username: string, email: string, password: string) => Promise<void>;
-  googleLogin: (credential: string) => Promise<void>;
+  googleLogin: (credential: string) => Promise<LoginResponse | void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
   completeMfaLogin: () => Promise<void>;
@@ -143,8 +143,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   /**
    * Login with Google OAuth
    */
-  const googleLogin = async (credential: string) => {
-    await authService.googleLogin(credential);
+  const googleLogin = async (credential: string): Promise<LoginResponse | void> => {
+    const result = await authService.googleLogin(credential);
+
+    if (result.status === 'MFA_REQUIRED') {
+      return result;
+    }
+
     // Call /me to get full user data including services and profileImageUrl
     const userData = await authService.getCurrentUser();
     setUser(userData);

@@ -55,7 +55,11 @@ export default function Login() {
     setIsGoogleLoading(true);
 
     try {
-      await googleLogin(credentialResponse.credential);
+      const result = await googleLogin(credentialResponse.credential);
+
+      if (result && result.status === 'MFA_REQUIRED') {
+        navigate('/verify-otp', { state: { mfaToken: result.tempToken, identifier: 'Google account' } });
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Google Sign-In failed');
     } finally {

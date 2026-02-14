@@ -63,7 +63,7 @@ export const authService = {
    * Login with Google OAuth
    * Sends Google credential token to backend for verification
    */
-  async googleLogin(credential: string): Promise<void> {
+  async googleLogin(credential: string): Promise<LoginResponse> {
     const response = await fetch(config.api.auth.google, {
       method: 'POST',
       credentials: 'include', // REQUIRED for cookies
@@ -88,7 +88,8 @@ export const authService = {
       throw new Error(error.message || 'Google authentication failed');
     }
 
-    // SSO sets HttpOnly cookies - getCurrentUser() should be called after this
+    const data = await response.json();
+    return data as LoginResponse;
   },
 
   /**

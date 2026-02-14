@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, Navigate } from 'react-router-dom';
+import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { GoogleLogin, CredentialResponse } from '@react-oauth/google';
 import { useAuth } from '../../context/AuthContext';
 import { config } from '../../config';
@@ -7,6 +7,7 @@ import styles from './Register.module.css';
 
 export default function Register() {
   const { isAuthenticated, register, googleLogin } = useAuth();
+  const navigate = useNavigate();
 
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
@@ -65,7 +66,11 @@ export default function Register() {
     setIsGoogleLoading(true);
 
     try {
-      await googleLogin(credentialResponse.credential);
+      const result = await googleLogin(credentialResponse.credential);
+
+      if (result && result.status === 'MFA_REQUIRED') {
+        navigate('/verify-otp', { state: { mfaToken: result.tempToken, identifier: 'Google account' } });
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Google Sign-In failed');
     } finally {
