@@ -10,7 +10,8 @@ export default function Footer() {
           <Link to="/">Home</Link>
           <Link to="/about">About</Link>
           <Link to="/contact">Contact</Link>
-          <a href="mailto:contact@eternivity.com">Support</a>
+          <Link to="/privacy">Privacy Policy</Link>
+          <Link to="/safe-usage">Safe Usage</Link>
         </nav>
         
         <p className={styles.copyright}>

@@ -23,13 +23,6 @@ export default function Contact() {
         </div>
       </div>
       
-      <div className={styles['contact-card']}>
-        <div className={styles['contact-icon']}>💬</div>
-        <div className={styles['contact-info']}>
-          <h4>Community Support</h4>
-          <p>Join our community for discussions and peer support</p>
-        </div>
-      </div>
     </section>
   )
 }

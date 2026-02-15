@@ -109,7 +109,7 @@ main {
 /* Page wrapper */
 .page {
   display: grid;
-  place-items: start center;
+  place-items: start stretch;
   padding: 40px 0;
   animation: fadeInUp 0.6s ease-out;
 }
