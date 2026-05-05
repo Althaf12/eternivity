@@ -1,6 +1,6 @@
 import React from 'react'
 import styles from './Home.module.css'
-import logo from '/logo/Picture1-min.webp'
+import logo from '/logo/eternivity.webp'
 import { useAuth } from '../../context/AuthContext'
 import { Link } from 'react-router-dom'
 import { config } from '../../config'

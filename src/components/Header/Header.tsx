@@ -33,7 +33,7 @@ export default function Header() {
     <header className={styles['site-header']}>
       <div className={styles['header-inner']}>
         <Link to="/" className={styles['logo-link']} aria-label="Eternivity home">
-          <img src="/logo/Picture3-no bg.png" alt="Eternivity logo" className={styles.logo} />
+          <img src="/logo/logo.webp" alt="Eternivity logo" className={styles.logo} />
           <span className={styles.brand}>
             Eternivity<span className="tm">TM</span>
           </span>
