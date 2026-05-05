@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import styles from './Header.module.css'
+import headerLogo from '../../assets/logo/logo.webp'
 
 export default function Header() {
   const { isAuthenticated, user, logout } = useAuth();
@@ -33,7 +34,7 @@ export default function Header() {
     <header className={styles['site-header']}>
       <div className={styles['header-inner']}>
         <Link to="/" className={styles['logo-link']} aria-label="Eternivity home">
-          <img src="/logo/logo.webp" alt="Eternivity logo" className={styles.logo} />
+          <img src={headerLogo} alt="Eternivity logo" className={styles.logo} />
           <span className={styles.brand}>
             Eternivity<span className="tm">TM</span>
           </span>

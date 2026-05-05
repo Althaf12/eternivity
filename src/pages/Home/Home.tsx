@@ -1,6 +1,8 @@
 import React from 'react'
 import styles from './Home.module.css'
-import logo from '/logo/eternivity.webp'
+import logo from '../../assets/logo/eternivity.webp'
+import expenseTrackerLogo from '../../assets/logo/expense_tracker.webp'
+import passwordVaultLogo from '../../assets/logo/password_vault.webp'
 import { useAuth } from '../../context/AuthContext'
 import { Link } from 'react-router-dom'
 import { config } from '../../config'
@@ -78,8 +80,7 @@ export default function Home() {
         <div className="container">
           <h2>Available Services</h2>
           <div className={styles.cards}>
-            <article className={styles.card}>
-              <div className={styles['card-icon']}>💰</div>
+            <article className={styles.card} style={{ backgroundImage: `linear-gradient(rgba(10,10,20,0.68), rgba(10,10,20,0.68)), url(${expenseTrackerLogo})`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
               <h3>Expense Tracker</h3>
               <p>Personal expense tracking. Simple, private, and fast. Track your spending habits and manage your budget effectively.</p>
               <a 
@@ -93,8 +94,7 @@ export default function Home() {
               </a>
             </article>
             
-              <article className={styles.card}>
-                <div className={styles['card-icon']}>🔐</div>
+              <article className={styles.card} style={{ backgroundImage: `linear-gradient(rgba(10,10,20,0.68), rgba(10,10,20,0.68)), url(${passwordVaultLogo})`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
                 <h3>Password Vault</h3>
                 <p>Securely store and manage your passwords across services with strong encryption.
                   <br />(App in development)</p>
