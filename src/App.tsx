@@ -13,6 +13,7 @@ import PrivacyPolicy from './pages/PrivacyPolicy/PrivacyPolicy'
 import SafeUsage from './pages/SafeUsage/SafeUsage'
 import Header from './components/Header/Header'
 import Footer from './components/Footer/Footer'
+import AuthModal from './components/AuthModal/AuthModal'
 import { ToastContainer, Confetti } from './components/Toast/Toast'
 
 function AppContent() {
@@ -40,6 +41,7 @@ function AppContent() {
       </div>
       <ToastContainer toasts={toasts} onRemove={removeToast} />
       <Confetti show={showConfetti} />
+      <AuthModal />
     </>
   );
 }

@@ -16,6 +16,10 @@ interface AuthContextType {
   toasts: ToastData[];
   removeToast: (id: string) => void;
   showConfetti: boolean;
+  showAuthModal: boolean;
+  authModalMode: 'login' | 'register';
+  openAuthModal: (mode: 'login' | 'register') => void;
+  closeAuthModal: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -26,6 +30,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<ToastData[]>([]);
   const [showConfetti, setShowConfetti] = useState(false);
   const [hasShownWelcome, setHasShownWelcome] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [authModalMode, setAuthModalMode] = useState<'login' | 'register'>('login');
+
+  const openAuthModal = useCallback((mode: 'login' | 'register') => {
+    setAuthModalMode(mode);
+    setShowAuthModal(true);
+  }, []);
+
+  const closeAuthModal = useCallback(() => {
+    setShowAuthModal(false);
+  }, []);
 
   const addToast = useCallback((toast: Omit<ToastData, 'id'>) => {
     const id = Date.now().toString();
@@ -196,6 +211,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         toasts,
         removeToast,
         showConfetti,
+        showAuthModal,
+        authModalMode,
+        openAuthModal,
+        closeAuthModal,
       }}
     >
       {children}
