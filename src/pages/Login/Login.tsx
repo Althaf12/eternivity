@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, Navigate, useSearchParams } from 'react-router-dom';
 import { GoogleLogin, CredentialResponse } from '@react-oauth/google';
 import { useAuth } from '../../context/AuthContext';
@@ -6,7 +6,7 @@ import { config } from '../../config';
 import styles from './Login.module.css';
 
 export default function Login() {
-  const { isAuthenticated, login, googleLogin } = useAuth();
+  const { isAuthenticated, isLoading: isAuthLoading, login, googleLogin } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const redirectUri = searchParams.get('redirect_uri');
@@ -22,12 +22,19 @@ export default function Login() {
   const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
   const [forgotPasswordSuccess, setForgotPasswordSuccess] = useState(false);
 
-  // Redirect if already authenticated
-  if (isAuthenticated) {
-    if (redirectUri) {
+  // Redirect to external URI via effect (not during render)
+  useEffect(() => {
+    if (!isAuthLoading && isAuthenticated && redirectUri) {
       window.location.href = redirectUri;
-      return null;
     }
+  }, [isAuthLoading, isAuthenticated, redirectUri]);
+
+  // Wait for auth state to resolve before rendering
+  if (isAuthLoading) return null;
+
+  // Redirect if already authenticated (no external redirect_uri)
+  if (isAuthenticated) {
+    if (redirectUri) return null; // useEffect handles external redirect
     return <Navigate to="/profile" replace />;
   }
 
