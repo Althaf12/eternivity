@@ -15,9 +15,14 @@
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
-  <!-- External subdomain service -->
+  <!-- External subdomain services -->
   <url>
     <loc>https://expensetracker.eternivity.com/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://passwordvault.eternivity.com/</loc>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
