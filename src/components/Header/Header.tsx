@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import styles from './Header.module.css'
-import headerLogo from '../../assets/logo/logo.webp'
+import headerLogo from '../../logo/logo.webp'
 
 export default function Header() {
   const { isAuthenticated, user, logout } = useAuth();
