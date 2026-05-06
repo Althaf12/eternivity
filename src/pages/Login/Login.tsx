@@ -5,11 +5,25 @@ import { useAuth } from '../../context/AuthContext';
 import { config } from '../../config';
 import styles from './Login.module.css';
 
+function isValidRedirectUri(uri: string | null): uri is string {
+  if (!uri) return false;
+  try {
+    const url = new URL(uri);
+    return (
+      url.protocol === 'https:' &&
+      (url.hostname === 'eternivity.com' || url.hostname.endsWith('.eternivity.com'))
+    );
+  } catch {
+    return false;
+  }
+}
+
 export default function Login() {
   const { isAuthenticated, isLoading: isAuthLoading, login, googleLogin } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const redirectUri = searchParams.get('redirect_uri');
+  const rawRedirectUri = searchParams.get('redirect_uri');
+  const redirectUri = isValidRedirectUri(rawRedirectUri) ? rawRedirectUri : null;
 
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
@@ -30,11 +44,28 @@ export default function Login() {
   }, [isAuthLoading, isAuthenticated, redirectUri]);
 
   // Wait for auth state to resolve before rendering
-  if (isAuthLoading) return null;
+  if (isAuthLoading) {
+    return (
+      <section className={styles['auth-page']}>
+        <div className={styles['auth-card']} style={{ textAlign: 'center', padding: '60px 40px', color: 'var(--muted)' }}>
+          Loading...
+        </div>
+      </section>
+    );
+  }
 
-  // Redirect if already authenticated (no external redirect_uri)
+  // Redirect if already authenticated
   if (isAuthenticated) {
-    if (redirectUri) return null; // useEffect handles external redirect
+    if (redirectUri) {
+      // useEffect handles the external redirect; show a brief status
+      return (
+        <section className={styles['auth-page']}>
+          <div className={styles['auth-card']} style={{ textAlign: 'center', padding: '60px 40px', color: 'var(--muted)' }}>
+            Redirecting...
+          </div>
+        </section>
+      );
+    }
     return <Navigate to="/profile" replace />;
   }
 
