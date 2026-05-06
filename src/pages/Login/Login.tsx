@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, Navigate, useSearchParams } from 'react-router-dom';
 import { GoogleLogin, CredentialResponse } from '@react-oauth/google';
 import { useAuth } from '../../context/AuthContext';
+import { authService } from '../../services/authService';
 import { config } from '../../config';
 import styles from './Login.module.css';
 
@@ -148,7 +149,6 @@ export default function Login() {
 
     setIsLoading(true);
     try {
-      const { authService } = await import('../../services/authService');
       await authService.forgotPassword(forgotPasswordEmail);
       setForgotPasswordSuccess(true);
     } catch (err) {
