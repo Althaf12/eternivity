@@ -266,7 +266,7 @@ export default function ExpenseTracker() {
           <h2>Ready to take control of your finances?</h2>
           <p>No spreadsheets. No clutter. Just clean, focused expense tracking.</p>
           <a
-            href="https://expenses.eternivity.com"
+            href="https://expensetracker.eternivity.com"
             target="_blank"
             rel="noopener noreferrer"
             className={styles.ctaBtn}
