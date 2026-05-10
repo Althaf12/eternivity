@@ -80,13 +80,20 @@ export default function Home() {
         <div className="container">
           <h2>Available Services</h2>
           <div className={styles.cards}>
-            <article className={styles.card} style={{ backgroundImage: `linear-gradient(rgba(10,10,20,0.68), rgba(10,10,20,0.68)), url(${expenseTrackerLogo})`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
+            <article
+              className={`${styles.card} ${styles['card-clickable']}`}
+              style={{ backgroundImage: `linear-gradient(rgba(10,10,20,0.68), rgba(10,10,20,0.68)), url(${expenseTrackerLogo})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
+              onClick={() => window.location.href = '/services/expense-tracker'}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => e.key === 'Enter' && (window.location.href = '/services/expense-tracker')}
+            >
               <h3>Expense Tracker</h3>
               <p>Personal expense tracking. Simple, private, and fast. Track your spending habits and manage your budget effectively.</p>
               <a 
                 className={styles.btn} 
                 href={config.services.expenseTracker}
-                onClick={(e) => handleServiceClick(e, config.services.expenseTracker)}
+                onClick={(e) => { e.stopPropagation(); handleServiceClick(e, config.services.expenseTracker); }}
                 target="_blank" 
                 rel="noopener noreferrer"
               >
@@ -94,14 +101,21 @@ export default function Home() {
               </a>
             </article>
             
-              <article className={styles.card} style={{ backgroundImage: `linear-gradient(rgba(10,10,20,0.68), rgba(10,10,20,0.68)), url(${passwordVaultLogo})`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
+              <article
+                className={`${styles.card} ${styles['card-clickable']}`}
+                style={{ backgroundImage: `linear-gradient(rgba(10,10,20,0.68), rgba(10,10,20,0.68)), url(${passwordVaultLogo})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
+                onClick={() => window.location.href = '/services/password-vault'}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => e.key === 'Enter' && (window.location.href = '/services/password-vault')}
+              >
                 <h3>Password Vault</h3>
                 <p>Securely store and manage your passwords across services with strong encryption.
                   <br />(App in development)</p>
                 <a
                   className={styles.btn}
                   href={config.services.passwordVault}
-                  onClick={(e) => handleServiceClick(e, config.services.passwordVault)}
+                  onClick={(e) => { e.stopPropagation(); handleServiceClick(e, config.services.passwordVault); }}
                   target="_blank"
                   rel="noopener noreferrer"
                 >

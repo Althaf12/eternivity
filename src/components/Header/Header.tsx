@@ -7,13 +7,18 @@ import headerLogo from '../../logo/logo.webp'
 export default function Header() {
   const { isAuthenticated, user, logout } = useAuth();
   const [showDropdown, setShowDropdown] = useState(false);
+  const [showServices, setShowServices] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const servicesRef = useRef<HTMLDivElement>(null);
 
   // Close dropdown when clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setShowDropdown(false);
+      }
+      if (servicesRef.current && !servicesRef.current.contains(event.target as Node)) {
+        setShowServices(false);
       }
     }
 
@@ -44,6 +49,42 @@ export default function Header() {
           <Link to="/">Home</Link>
           <Link to="/about">About</Link>
           <Link to="/contact">Contact</Link>
+          <div className={styles['services-nav']} ref={servicesRef}>
+            <button
+              className={styles['services-btn']}
+              onClick={() => setShowServices(!showServices)}
+              aria-expanded={showServices}
+              aria-haspopup="true"
+            >
+              Services <span className={`${styles['services-caret']} ${showServices ? styles['caret-open'] : ''}`}>▾</span>
+            </button>
+            {showServices && (
+              <div className={styles['services-dropdown']}>
+                <Link
+                  to="/services/expense-tracker"
+                  className={styles['services-item']}
+                  onClick={() => setShowServices(false)}
+                >
+                  <span>💸</span>
+                  <div>
+                    <strong>Expense Tracker</strong>
+                    <small>Personal finance management</small>
+                  </div>
+                </Link>
+                <Link
+                  to="/services/password-vault"
+                  className={styles['services-item']}
+                  onClick={() => setShowServices(false)}
+                >
+                  <span>🔐</span>
+                  <div>
+                    <strong>Password Vault</strong>
+                    <small>Coming soon</small>
+                  </div>
+                </Link>
+              </div>
+            )}
+          </div>
         </nav>
 
         {!isAuthenticated ? (

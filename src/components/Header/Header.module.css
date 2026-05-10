@@ -95,6 +95,108 @@ nav a:hover::after {
   width: 20px;
 }
 
+/* Services Nav Dropdown */
+.services-nav {
+  position: relative;
+}
+
+.services-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: none;
+  border: none;
+  color: var(--muted);
+  padding: 8px 16px;
+  font-weight: 500;
+  font-size: 0.95rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  font-family: inherit;
+}
+
+.services-btn:hover {
+  color: var(--text-bright);
+  background: var(--glass);
+}
+
+.services-caret {
+  font-size: 0.8rem;
+  transition: transform var(--transition-fast);
+  display: inline-block;
+}
+
+.caret-open {
+  transform: rotate(180deg);
+}
+
+.services-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  min-width: 220px;
+  background: linear-gradient(145deg, var(--card), var(--bg-secondary));
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+  animation: fadeInDown 0.18s ease-out;
+  z-index: 1000;
+}
+
+.services-dropdown::before {
+  content: '';
+  position: absolute;
+  top: -6px;
+  left: 50%;
+  transform: translateX(-50%) rotate(45deg);
+  width: 12px;
+  height: 12px;
+  background: var(--card);
+  border-left: 1px solid var(--border);
+  border-top: 1px solid var(--border);
+}
+
+.services-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px;
+  color: var(--text);
+  text-decoration: none;
+  transition: all var(--transition-fast);
+}
+
+.services-item:not(:last-child) {
+  border-bottom: 1px solid var(--border);
+}
+
+.services-item:hover {
+  background: var(--glass-hover);
+  color: var(--text-bright);
+}
+
+.services-item > span {
+  font-size: 1.4rem;
+  flex-shrink: 0;
+}
+
+.services-item strong {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-bright);
+}
+
+.services-item small {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
 .auth-section {
   display: flex;
   align-items: center;

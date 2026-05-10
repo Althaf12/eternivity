@@ -11,6 +11,8 @@ import Register from './pages/Register/Register'
 import VerifyOtp from './pages/VerifyOtp/VerifyOtp'
 import PrivacyPolicy from './pages/PrivacyPolicy/PrivacyPolicy'
 import SafeUsage from './pages/SafeUsage/SafeUsage'
+import ExpenseTracker from './pages/ExpenseTracker/ExpenseTracker'
+import PasswordVault from './pages/PasswordVault/PasswordVault'
 import Header from './components/Header/Header'
 import Footer from './components/Footer/Footer'
 import AuthModal from './components/AuthModal/AuthModal'
@@ -35,6 +37,8 @@ function AppContent() {
             <Route path="/verify-otp" element={<VerifyOtp />} />
             <Route path="/privacy" element={<PrivacyPolicy />} />
             <Route path="/safe-usage" element={<SafeUsage />} />
+            <Route path="/services/expense-tracker" element={<ExpenseTracker />} />
+            <Route path="/services/password-vault" element={<PasswordVault />} />
           </Routes>
         </main>
         <Footer />
