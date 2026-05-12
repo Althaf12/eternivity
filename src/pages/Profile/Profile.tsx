@@ -13,6 +13,14 @@ export default function Profile() {
   const [setPasswordSuccess, setSetPasswordSuccess] = useState('');
   const [isSettingPassword, setIsSettingPassword] = useState(false);
 
+  // Change password state
+  const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
+  const [oldPassword, setOldPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [changePasswordError, setChangePasswordError] = useState('');
+  const [changePasswordSuccess, setChangePasswordSuccess] = useState('');
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+
   // MFA state
   const [mfaStep, setMfaStep] = useState<'idle' | 'loading' | 'qr' | 'success' | 'disable'>('idle');
   const [mfaQrImage, setMfaQrImage] = useState('');
@@ -42,8 +50,43 @@ export default function Profile() {
   const needsPasswordSetup = user && !user.hasPassword && !user.authProviders?.includes('LOCAL');
 
   const handleResetPassword = () => {
-    // Redirect to SSO password reset page
-    authService.redirectToPasswordReset();
+    setOldPassword('');
+    setNewPassword('');
+    setChangePasswordError('');
+    setChangePasswordSuccess('');
+    setShowChangePasswordModal(true);
+  };
+
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setChangePasswordError('');
+    setChangePasswordSuccess('');
+
+    if (!oldPassword) {
+      setChangePasswordError('Please enter your current password');
+      return;
+    }
+    if (newPassword.length < 8) {
+      setChangePasswordError('New password must be at least 8 characters long');
+      return;
+    }
+
+    setIsChangingPassword(true);
+    try {
+      await authService.changePassword(oldPassword, newPassword);
+      setChangePasswordSuccess('Password changed successfully. Please login again.');
+      setOldPassword('');
+      setNewPassword('');
+      setTimeout(() => {
+        setShowChangePasswordModal(false);
+        setChangePasswordSuccess('');
+        logout();
+      }, 2000);
+    } catch (err) {
+      setChangePasswordError(err instanceof Error ? err.message : 'Failed to change password');
+    } finally {
+      setIsChangingPassword(false);
+    }
   };
 
   const handleSetPassword = async (e: React.FormEvent) => {
@@ -451,6 +494,70 @@ export default function Profile() {
           )}
         </div>
       </div>
+
+      {/* Change Password Modal */}
+      {showChangePasswordModal && (
+        <div className={styles['modal-overlay']} onClick={() => setShowChangePasswordModal(false)}>
+          <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+            <h3>Change Password</h3>
+            <p>Enter your current password and a new password below.</p>
+
+            <form onSubmit={handleChangePassword}>
+              {changePasswordError && (
+                <div className={`${styles.message} ${styles.error}`}>{changePasswordError}</div>
+              )}
+              {changePasswordSuccess && (
+                <div className={`${styles.message} ${styles.success}`}>{changePasswordSuccess}</div>
+              )}
+
+              <div className={styles['form-group']}>
+                <label htmlFor="oldPassword">Current Password</label>
+                <input
+                  type="password"
+                  id="oldPassword"
+                  value={oldPassword}
+                  onChange={(e) => setOldPassword(e.target.value)}
+                  placeholder="Enter your current password"
+                  required
+                  disabled={isChangingPassword}
+                />
+              </div>
+
+              <div className={styles['form-group']}>
+                <label htmlFor="changeNewPassword">New Password</label>
+                <input
+                  type="password"
+                  id="changeNewPassword"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="Enter new password (min 8 characters)"
+                  required
+                  minLength={8}
+                  disabled={isChangingPassword}
+                />
+              </div>
+
+              <div className={styles['modal-actions']}>
+                <button
+                  type="button"
+                  className={`${styles['action-btn']} ${styles.secondary}`}
+                  onClick={() => setShowChangePasswordModal(false)}
+                  disabled={isChangingPassword}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className={`${styles['action-btn']} ${styles.primary}`}
+                  disabled={isChangingPassword}
+                >
+                  {isChangingPassword ? 'Changing...' : 'Change Password'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Set Password Modal */}
       {showSetPasswordModal && (

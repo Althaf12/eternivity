@@ -140,6 +140,26 @@ export const authService = {
   },
 
   /**
+   * Change password for authenticated user
+   * Requires current session (HttpOnly cookie) — no redirect needed
+   */
+  async changePassword(oldPassword: string, newPassword: string): Promise<void> {
+    const response = await fetch(`${config.api.auth.baseUrl}/api/auth/password-reset`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ oldPassword, newPassword }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ message: 'Failed to change password' }));
+      throw new Error(error.message || 'Failed to change password');
+    }
+  },
+
+  /**
    * Get current user info from SSO
    * Relies on HttpOnly cookies for authentication
    */
