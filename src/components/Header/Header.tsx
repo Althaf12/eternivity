@@ -1,11 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import styles from './Header.module.css'
 import headerLogo from '../../logo/logo.webp'
 
 export default function Header() {
   const { isAuthenticated, user, logout } = useAuth();
+  const location = useLocation();
   const [showDropdown, setShowDropdown] = useState(false);
   const [showServices, setShowServices] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -90,13 +91,13 @@ export default function Header() {
         {!isAuthenticated ? (
           <div className={styles['auth-section']}>
             <Link 
-              to="/login"
+              to={`/login?from=${encodeURIComponent(location.pathname)}`}
               className={`${styles['auth-btn']} ${styles['login-btn']}`}
             >
               Sign In
             </Link>
             <Link 
-              to="/register"
+              to={`/register?from=${encodeURIComponent(location.pathname)}`}
               className={`${styles['auth-btn']} ${styles['register-btn']}`}
             >
               Get Started

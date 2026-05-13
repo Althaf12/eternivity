@@ -12,6 +12,7 @@ export default function VerifyOtp() {
   const mfaToken = location.state?.mfaToken as string | undefined;
   const identifier = location.state?.identifier as string | undefined;
   const redirectUri = location.state?.redirectUri as string | undefined;
+  const from = location.state?.from as string | undefined;
 
   const [otp, setOtp] = useState<string[]>(Array(6).fill(''));
   const [error, setError] = useState('');
@@ -87,6 +88,8 @@ export default function VerifyOtp() {
       await completeMfaLogin();
       if (redirectUri) {
         window.location.href = redirectUri;
+      } else if (from) {
+        navigate(from, { replace: true });
       } else {
         navigate('/', { replace: true });
       }

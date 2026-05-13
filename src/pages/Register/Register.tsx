@@ -5,11 +5,18 @@ import { useAuth } from '../../context/AuthContext';
 import { config } from '../../config';
 import styles from './Register.module.css';
 
+function isValidFrom(path: string | null): path is string {
+  if (!path) return false;
+  // Must be a relative path starting with '/' but not '//' (protocol-relative URL)
+  return path.startsWith('/') && !path.startsWith('//');
+}
+
 export default function Register() {
   const { isAuthenticated, register, googleLogin } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const redirectUri = searchParams.get('redirect_uri');
+  const from = isValidFrom(searchParams.get('from')) ? searchParams.get('from') : null;
 
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
@@ -25,7 +32,7 @@ export default function Register() {
       window.location.href = redirectUri;
       return null;
     }
-    return <Navigate to="/profile" replace />;
+    return <Navigate to={from || '/profile'} replace />;
   }
 
   const getPasswordStrength = (pwd: string): number => {
@@ -76,7 +83,7 @@ export default function Register() {
 
       if (result && result.status === 'MFA_REQUIRED') {
         navigate('/verify-otp', {
-          state: { mfaToken: result.tempToken, identifier: 'Google account', redirectUri },
+          state: { mfaToken: result.tempToken, identifier: 'Google account', redirectUri, from },
           replace: true,
         });
         return;

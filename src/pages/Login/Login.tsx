@@ -19,12 +19,19 @@ function isValidRedirectUri(uri: string | null): uri is string {
   }
 }
 
+function isValidFrom(path: string | null): path is string {
+  if (!path) return false;
+  // Must be a relative path starting with '/' but not '//' (protocol-relative URL)
+  return path.startsWith('/') && !path.startsWith('//');
+}
+
 export default function Login() {
   const { isAuthenticated, isLoading: isAuthLoading, login, googleLogin } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const rawRedirectUri = searchParams.get('redirect_uri');
   const redirectUri = isValidRedirectUri(rawRedirectUri) ? rawRedirectUri : null;
+  const from = isValidFrom(searchParams.get('from')) ? searchParams.get('from') : null;
 
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
@@ -67,7 +74,7 @@ export default function Login() {
         </section>
       );
     }
-    return <Navigate to="/profile" replace />;
+    return <Navigate to={from || '/profile'} replace />;
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -81,7 +88,7 @@ export default function Login() {
       if (result && result.status === 'MFA_REQUIRED') {
         // Redirect to OTP verification page, preserving redirect_uri
         navigate('/verify-otp', {
-          state: { mfaToken: result.tempToken, identifier, redirectUri },
+          state: { mfaToken: result.tempToken, identifier, redirectUri, from },
           replace: true,
         });
         return;
@@ -112,7 +119,7 @@ export default function Login() {
 
       if (result && result.status === 'MFA_REQUIRED') {
         navigate('/verify-otp', {
-          state: { mfaToken: result.tempToken, identifier: 'Google account', redirectUri },
+          state: { mfaToken: result.tempToken, identifier: 'Google account', redirectUri, from },
           replace: true,
         });
         return;

@@ -4,11 +4,12 @@ import logo from '../../logo/eternivity.webp'
 import expenseTrackerLogo from '../../logo/expense_tracker.webp'
 import passwordVaultLogo from '../../logo/password_vault.webp'
 import { useAuth } from '../../context/AuthContext'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { config } from '../../config'
 
 export default function Home() {
   const { isAuthenticated, user } = useAuth();
+  const location = useLocation();
 
   const handleServiceClick = (e: React.MouseEvent<HTMLAnchorElement>, serviceUrl: string) => {
     // With centralized SSO, authentication is handled via HttpOnly cookies
@@ -37,10 +38,10 @@ export default function Home() {
             <div className={styles['hero-cta']}>
               {!isAuthenticated ? (
                 <>
-                  <Link to="/register" className="btn-primary">
+                  <Link to={`/register?from=${encodeURIComponent(location.pathname)}`} className="btn-primary">
                     Get Started Free
                   </Link>
-                  <Link to="/login" className="btn-secondary">
+                  <Link to={`/login?from=${encodeURIComponent(location.pathname)}`} className="btn-secondary">
                     Sign In
                   </Link>
                 </>
