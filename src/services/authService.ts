@@ -164,12 +164,8 @@ export const authService = {
    * Relies on HttpOnly cookies for authentication
    */
   async getCurrentUser(): Promise<User> {
-    const response = await fetch(config.api.auth.me, {
+    const response = await this.fetchWithAuth(config.api.auth.me, {
       method: 'GET',
-      credentials: 'include', // Important: include cookies for cross-origin requests
-      headers: {
-        'Content-Type': 'application/json',
-      },
     });
 
     if (!response.ok) {
